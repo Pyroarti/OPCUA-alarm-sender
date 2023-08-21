@@ -305,7 +305,6 @@ class App(customtkinter.CTk):
                                                  font=("Helvetica", 15))
         self.create_new_user_button.pack(pady=10, padx=10)
 
-
         self.config_opcua_serverbutton = customtkinter.CTkButton(master=self.main_frame,
                                                  command="",
                                                  text="Config the OPC UA server",
@@ -364,6 +363,7 @@ class App(customtkinter.CTk):
                 self.users_treeview.insert("", "end", text="", values=(Name, phone_number, user_active))
 
         self.users_treeview.bind("<Double-1>", self.open_edit_user_window)
+
 
     def update_user_list(self):
         """Updates the user list"""
