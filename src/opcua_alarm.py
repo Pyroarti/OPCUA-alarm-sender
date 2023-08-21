@@ -4,7 +4,8 @@ import asyncua.common.subscription
 from create_logger import setup_logger
 from opcua_client import connect_opcua
 import traceback
-
+import os
+import json
 
 logger_alarm = setup_logger('opcua_prog_alarm')
 logger_opcua_alarm = setup_logger("opcua_alarms")
@@ -123,15 +124,10 @@ async def monitor_alarms():
     encrypted_username = opcua_config["username"]
     encrypted_password = opcua_config["password"]
 
-    ip_address = []
-    unit_id = []
-    tasks = []
+    opcua_config_file = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'configs', 'opcua_config.json')
 
-    ip_address = [address[1] for address in units]
-    unit_id = [unit[0] for unit in units]
-
-    for adresses, unit_id in zip(ip_address, unit_id):
-        tasks.append(asyncio.create_task(subscribe_to_server(adresses,
-                                                             encrypted_username, encrypted_password)))
-
-    await asyncio.gather(*tasks)
+    with open(opcua_config_file, 'r') as file:
+            data = file.read()
+            json_data = json.loads(data)
+            ip_adress = json_data["adress"]
+            print(ip_adress)
