@@ -25,7 +25,7 @@ def index():
             data = json.load(f)
             for user in data:
                 if user['phone_number'] == phone_number:
-                    flash('This number is already in use.')
+                    flash('Det här nummret används redan')
                     return redirect(url_for('index'))
 
             data.append({
@@ -38,7 +38,7 @@ def index():
             json.dump(data, f, indent=4)
             f.truncate()
 
-        flash('User successfully added.')
+        flash('Mottagare tillagd.')
         return redirect(url_for('index'))
 
     with open(phone_book_file, 'r', encoding='utf8') as f:
@@ -67,7 +67,7 @@ def edit_user(id):
             json.dump(data, f, indent=4)
             f.truncate()
 
-            flash('User successfully deleted.')
+            flash('Mottagare raderad.')
             return redirect(url_for('index'))
 
         if request.method == 'POST':
@@ -83,7 +83,7 @@ def edit_user(id):
             json.dump(data, f, indent=4)
             f.truncate()
 
-            flash('User successfully edited.')
+            flash('Mottagaren har uppdaterats.')
             return redirect(url_for('index'))
 
         return render_template('edit_user.html', user=user_to_edit, id=id)

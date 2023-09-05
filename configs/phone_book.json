@@ -1,8 +1,8 @@
 [
     {
-        "Name": "Robert Balulis",
+        "Name": "Roberts Balulis",
         "phone_number": "0707349518",
-        "Active": "No"
+        "Active": "Yes"
     },
     {
         "Name": "Tobias Heeeedin",
@@ -10,23 +10,8 @@
         "Active": "Yes"
     },
     {
-        "Name": "test",
-        "phone_number": "07010101",
-        "Active": "Yes"
-    },
-    {
         "Name": "rita",
         "phone_number": "07096954",
-        "Active": "Yes"
-    },
-    {
-        "Name": "baba",
-        "phone_number": "0704321",
-        "Active": "Yes"
-    },
-    {
-        "Name": "henrik",
-        "phone_number": "andersson",
         "Active": "No"
     }
 ]
