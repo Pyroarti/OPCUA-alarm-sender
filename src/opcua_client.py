@@ -4,7 +4,6 @@ import asyncua.ua.uaerrors._auto as uaerrors
 import asyncua.common
 
 from create_logger import setup_logger
-from data_encrypt import Data_encrypt
 
 
 logger = setup_logger('opcua_client')

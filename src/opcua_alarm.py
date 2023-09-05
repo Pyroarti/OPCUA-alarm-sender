@@ -7,18 +7,24 @@ import traceback
 import os
 import json
 
+from sms_sender import send_sms
+
 logger_alarm = setup_logger('opcua_prog_alarm')
 logger_opcua_alarm = setup_logger("opcua_alarms")
 
+current_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.dirname(current_dir)
+config_dir = os.path.join(parent_dir, "configs")
+phone_book_file = os.path.join(config_dir, 'phone_book.json')
 
-async def subscribe_to_server(adresses, encrypted_username, encrypted_password):
+
+async def subscribe_to_server(adresses, username, password):
     """
     This function handles the process of connecting and subscribing to the OPCUA server.
     Args:
         adresses (str): Address of the OPCUA server.
-        encrypted_username (str): Encrypted username for the OPCUA server.
-        encrypted_password (str): Encrypted password for the OPCUA server.
-        add_opcua_alarm_to_datagrid_function (function): Callback function that handles adding alarm to data grid.
+        username (str): Encrypted username for the OPCUA server.
+        password (str): Encrypted password for the OPCUA server.
     """
 
     client: Client = None
@@ -26,7 +32,7 @@ async def subscribe_to_server(adresses, encrypted_username, encrypted_password):
     while True:
         try:
             if client is None:
-                client:Client = await connect_opcua(adresses, encrypted_username, encrypted_password)
+                client:Client = await connect_opcua(adresses, username, password)
 
             else:
 
@@ -55,15 +61,14 @@ async def subscribe_to_server(adresses, encrypted_username, encrypted_password):
 class SubHandler(object):
     """
     Subscription Handler class that receives the events from the OPC UA server.
-    Attributes:
-        add_opcua_alarm_to_datagrid_function (function): Callback function that handles adding alarm to data grid.
-        address (str): Address of the OPCUA server.
     """
 
-    def __init__(self, address):
-        self.address = address
 
-    def event_notification(self, event):
+    async def __init__(self, address, phone_book_file):
+        self.address = address
+        self.phone_book_file = phone_book_file
+
+    async def event_notification(self, event):
 
         try:
             message = str(event.Message.Text)
@@ -104,6 +109,17 @@ class SubHandler(object):
                                     f"identifier: {identifier}"
                                     )
 
+            with open(self.phone_book_file, 'r', encoding='utf8') as f:
+                    users = json.load(f)
+
+            for user in users:
+                if user.get('Active') == 'Yes':
+                    phone_number = user.get('phone_number')
+                    name = user.get('Namn')
+                    message = f"Alarm detected! Message: {message}, Severity: {severity}"
+                    send_sms(phone_number, message)
+                    print(f"Sent SMS to {name} at {phone_number}")
+
         except Exception as e:
             logger_alarm.error(f"Error while processing event notification from {self.address} - Error: {e}")
             logger_alarm.error(traceback.format_exc())
@@ -112,17 +128,8 @@ class SubHandler(object):
 
 async def monitor_alarms():
     """
-    This function monitors alarms by creating a subscription for each unit in the database.
-    Args:
-        add_opcua_alarm_to_datagrid_function (function): Callback function that handles adding alarm to data grid.
+    This function monitors alarms by creating a subscription for each opcua server.
     """
-
-    from src.data_encrypt import Data_encrypt
-    data_encrypt = Data_encrypt()
-    opcua_config = data_encrypt.encrypt_credentials("opcua_config.json", "OPCUA_KEY")
-
-    encrypted_username = opcua_config["username"]
-    encrypted_password = opcua_config["password"]
 
     opcua_config_file = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'configs', 'opcua_config.json')
 
@@ -130,4 +137,7 @@ async def monitor_alarms():
             data = file.read()
             json_data = json.loads(data)
             ip_adress = json_data["adress"]
-            print(ip_adress)
+            username = json_data["username"]
+            password = json_data["password"]
+
+    await subscribe_to_server(ip_adress, username, password)

@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        /* Apply a background color to the entire body */
+        body {
+            background-color: #f5f5f5;
+            font-family: Arial, sans-serif;
+        }
+
+        /* Center form on page */
+        .container {
+            max-width: 600px;
+            margin: 50px auto;
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0px 0px 10px rgba(0,0,0,0.1);
+        }
+
+        /* Increase size of headings */
+        h1 {
+            font-size: 1.5em;
+        }
+
+        /* Style labels and inputs */
+        label, input {
+            font-size: 1.2em;
+        }
+
+        label {
+            display: inline-block;
+            width: 150px;
+            margin-bottom: 10px;
+        }
+
+        /* Style the input fields */
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            box-sizing: border-box;
+        }
+
+        /* Style the submit buttons */
+        input[type="submit"] {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+
+        /* Update button */
+        .update-button {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        /* Delete button */
+        .delete-button {
+            background-color: red;
+            color: white;
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Edit User</h1>
+
+    <form method="post" action="{{ url_for('edit_user', id=id) }}">
+        <label for="name">Name:</label>
+        <input type="text" id="name" name="name" value="{{ user.Name }}" required><br>
+
+        <label for="phone_number">Phone Number:</label>
+        <input type="text" id="phone_number" name="phone_number" value="{{ user.phone_number }}" required><br>
+
+        <label for="active">Active:</label>
+        <input type="checkbox" id="active" name="active" {% if user.Active == 'Yes' %}checked{% endif %}><br>
+
+        <input type="submit" value="Update User" class="update-button">
+    </form>
+
+    <form method="post" action="{{ url_for('edit_user', id=id, action='delete') }}">
+        <input type="submit" value="Delete User" class="delete-button">
+    </form>
+</div>
+
+</body>
+</html>
