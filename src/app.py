@@ -11,6 +11,7 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 parent_dir = os.path.dirname(current_dir)
 config_dir = os.path.join(parent_dir, "configs")
 phone_book_file = os.path.join(config_dir, 'phone_book.json')
+flask_config_file = os.path.join(config_dir, 'flask_config.json')
 
 
 @app.route("/login", methods=["GET", "POST"])
@@ -18,12 +19,14 @@ def login():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-        if username == "LMT" and password == "Lmt.1201":  # Replace with your logic
-            session['logged_in'] = True
-            session['username'] = username
-            return redirect(url_for('index'))
-        else:
-            flash('Wrong credentials!')
+        with open (flask_config_file, 'r', encoding='utf8') as f:
+            data = json.load(f)
+            if username == data['username'] and password == data['password']:
+                session['logged_in'] = True
+                session['username'] = username
+                return redirect(url_for('index'))
+            else:
+                flash('Fel inloggnings information!')
     return render_template("login.html")
 
 
@@ -63,7 +66,6 @@ def index():
             f.truncate()
 
         flash('Mottagare tillagd.')
-        return "This is the index. Welcome, " + session['username']
 
     with open(phone_book_file, 'r', encoding='utf8') as f:
         users = json.load(f)
