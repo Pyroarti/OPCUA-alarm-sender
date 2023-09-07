@@ -10,8 +10,11 @@ from sms_sender import send_sms
 logger_alarm = setup_logger('opcua_prog_alarm')
 logger_opcua_alarm = setup_logger("opcua_alarms")
 
-config_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "configs")
+current_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.dirname(current_dir)
+config_dir = os.path.join(parent_dir, "configs")
 phone_book_file = os.path.join(config_dir, 'phone_book.json')
+opcua_config_file = os.path.join(config_dir, 'opcua_config.json')
 
 # Load phone_book_file into memory
 with open(phone_book_file, 'r', encoding='utf8') as f:
@@ -102,7 +105,6 @@ class SubHandler:
 
 
 async def monitor_alarms():
-    opcua_config_file = os.path.join(config_dir, 'opcua_config.json')
     with open(opcua_config_file, 'r') as file:
         json_data = json.load(file)
         ip_address = json_data["adress"]
