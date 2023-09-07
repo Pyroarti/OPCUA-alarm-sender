@@ -1,26 +1,27 @@
 import serial
 import time
+import asyncio
 
 
-def send_sms(phone_number, message):
+async def send_sms(phone_number, message):
     try:
         ser = serial.Serial('/dev/ttyUSB0', 115200, timeout=1)
         ser.flushInput()
 
-        def send_at(command, response, timeout=1):
+        async def send_at(command, response, timeout=1):
             ser.write((command + '\r\n').encode())
-            time.sleep(timeout)
+            await asyncio.sleep(timeout)
             while ser.inWaiting():
                 break
             read_data = ser.read(ser.inWaiting()).decode()
             if response not in read_data:
                 raise Exception(f"Failed to execute {command}: {read_data}")
 
-        send_at('AT', 'OK')
-        send_at('AT+CMGF=1', 'OK')
-        send_at(f'AT+CMGS="{phone_number}"', '>')
+        await send_at('AT', 'OK')
+        await send_at('AT+CMGF=1', 'OK')
+        await send_at(f'AT+CMGS="{phone_number}"', '>')
         ser.write((message + chr(26)).encode())
-        time.sleep(3)
+        await asyncio.sleep(3)
 
         response = ser.read(ser.inWaiting()).decode()
         if 'OK' not in response:

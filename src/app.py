@@ -1,18 +1,42 @@
-from flask import Flask, request, render_template, redirect, flash, url_for
+from flask import Flask, request, render_template, redirect, flash, url_for, session
 import json
 import os
 
-app = Flask(__name__, template_folder='../templates', static_folder="../static")
-app.secret_key = "supersecretkey"
+from opcua_alarm import monitor_alarms
 
+app = Flask(__name__, template_folder='../templates', static_folder="../static")
+app.secret_key = 'Very secret key'
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 parent_dir = os.path.dirname(current_dir)
 config_dir = os.path.join(parent_dir, "configs")
 phone_book_file = os.path.join(config_dir, 'phone_book.json')
 
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        if username == "LMT" and password == "Lmt.1201":  # Replace with your logic
+            session['logged_in'] = True
+            session['username'] = username
+            return redirect(url_for('index'))
+        else:
+            flash('Wrong credentials!')
+    return render_template("login.html")
+
+
+@app.route("/logout")
+def logout():
+    session['logged_in'] = False
+    return redirect(url_for('index'))
+
+
 @app.route("/", methods=["GET", "POST"])
 def index():
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
     if request.method == 'POST':
         name = request.form['name']
         phone_number = request.form['phone_number']
@@ -39,7 +63,7 @@ def index():
             f.truncate()
 
         flash('Mottagare tillagd.')
-        return redirect(url_for('index'))
+        return "This is the index. Welcome, " + session['username']
 
     with open(phone_book_file, 'r', encoding='utf8') as f:
         users = json.load(f)
@@ -49,7 +73,10 @@ def index():
 
 @app.route("/edit/<int:id>", methods=["GET", "POST"])
 def edit_user(id):
-    action = request.args.get('action', '')  # Check for an 'action' query parameter
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+
+    action = request.args.get('action', '')
 
     with open(phone_book_file, 'r+', encoding='utf8') as f:
         data = json.load(f)
@@ -89,5 +116,5 @@ def edit_user(id):
         return render_template('edit_user.html', user=user_to_edit, id=id)
 
 
-if __name__ == "__main__":
-    app.run(debug=True)
+def main():
+    app.run(host="192.168.11.45", port=7777, debug=False)
