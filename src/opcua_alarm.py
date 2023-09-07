@@ -1,5 +1,5 @@
 import asyncio
-from asyncua import ua, Server, Client
+from asyncua import ua, Client
 import os
 import json
 
@@ -17,6 +17,7 @@ phone_book_file = os.path.join(config_dir, 'phone_book.json')
 with open(phone_book_file, 'r', encoding='utf8') as f:
     users = json.load(f)
 
+
 async def subscribe_to_server(adresses: str, username: str, password: str):
     client: Client = None
     while True:
@@ -31,13 +32,14 @@ async def subscribe_to_server(adresses: str, username: str, password: str):
                 alarmConditionType = client.get_node("ns=0;i=2915")
                 server_node = client.get_node(ua.NodeId(Identifier=2253, NodeIdType=ua.NodeIdType.Numeric, NamespaceIndex=0))
                 await sub.subscribe_alarms_and_conditions(server_node, alarmConditionType)
-                break
+
             else:
                 logger_alarm.error(f"Connection to server {adresses} failed. Retrying...")
                 await asyncio.sleep(10)
 
         except Exception as e:
             logger_alarm.error(f"Error connecting or subscribing to server {adresses}: {e}")
+            await client.disconnect()
             client = None
             await asyncio.sleep(10)
 
