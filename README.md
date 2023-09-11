@@ -11,5 +11,6 @@ Threaded execution of the Flask web server and the OPC UA client to run concurre
 ## Dependencies  
 Flask  
 asyncua  
+asyncio  
 Python's serial library  
-Python's threading and asyncio  
+Python's threading  
