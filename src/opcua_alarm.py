@@ -1,5 +1,5 @@
 import asyncio
-from asyncua import ua, Client
+from asyncua import ua
 import os
 import json
 
@@ -15,9 +15,6 @@ parent_dir = os.path.dirname(current_dir)
 config_dir = os.path.join(parent_dir, "configs")
 phone_book_file = os.path.join(config_dir, 'phone_book.json')
 opcua_config_file = os.path.join(config_dir, 'opcua_config.json')
-
-# Load phone_book_file into memory
-
 
 
 async def subscribe_to_server(adresses: str, username: str, password: str):
@@ -97,7 +94,7 @@ class SubHandler:
                 if user.get('Active') == 'Yes':
                     phone_number = user.get('phone_number')
                     name = user.get('Namn')
-                    message = f"Medelande: {opcua_alarm_message}, Allvar: {severity}"
+                    message = f"Medelande från Elmo pumpstation: {opcua_alarm_message}"
                     send_sms(phone_number, message)
                     logger_opcua_alarm.info(f"Sent SMS to {name} at {phone_number}")
 
