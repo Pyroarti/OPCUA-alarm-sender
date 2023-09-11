@@ -8,9 +8,9 @@ Sending SMS notifications to registered phone numbers via a GSM modem connected 
 Flask-based web interface to manage users (add, edit, delete phone numbers).
 Threaded execution of the Flask web server and the OPC UA client to run concurrently.
 
-## Dependencies  
-Flask  
-asyncua  
-asyncio  
-Python's serial library  
-Python's threading  
+## Dependencies
+Flask
+asyncua
+asyncio
+Python's serial library
+Python's threading

@@ -2,8 +2,6 @@ from flask import Flask, request, render_template, redirect, flash, url_for, ses
 import json
 import os
 
-from opcua_alarm import monitor_alarms
-
 app = Flask(__name__, template_folder='../templates', static_folder="../static")
 secret_key = os.urandom(24)
 

@@ -4,7 +4,7 @@ from create_logger import setup_logger
 
 logger = setup_logger(__name__)
 
-def send_at(ser:serial, command, response, timeout=2, max_retries=3):
+def send_at(ser, command, response, timeout=2, max_retries=3):
     """"
     Send AT command to GSM modem and check for response.
     :param ser: Serial object
@@ -52,7 +52,7 @@ def send_sms(phone_number: str, message: str):
             ser.write((message + chr(26)).encode()) # chr(26) is the ASCII code for CTRL+Z (end of message)
             time.sleep(3)
 
-            response = ser.read(ser.inWaiting()).decode() # Read response from modem
+            response = ser.read(ser.in_Waiting()).decode() # Read response from modem
             if 'OK' not in response:
                 logger.error(f"Failed to send SMS to {phone_number}: {response}")
 

@@ -21,7 +21,7 @@ opcua_config_file = os.path.join(config_dir, 'opcua_config.json')
 
 
 async def subscribe_to_server(adresses: str, username: str, password: str):
-    client: Client = None
+    client = None
     while True:
         try:
             if client is None:
