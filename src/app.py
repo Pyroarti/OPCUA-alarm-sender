@@ -3,7 +3,7 @@ import json
 import os
 
 app = Flask(__name__, template_folder='../templates', static_folder="../static")
-secret_key = os.urandom(24)
+app.secret_key = os.urandom(24)
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 parent_dir = os.path.dirname(current_dir)
