@@ -17,7 +17,7 @@ def setup_logger(logger_name):
 
     Usage:
     ```
-    logger = setup_logger('module_name')
+    logger = setup_logger(__name__)
     ```
 
     This will create a logger that writes messages to the 'module_name.log' file in the 'logs'
@@ -27,10 +27,10 @@ def setup_logger(logger_name):
     logger = logging.getLogger(logger_name)
     logger.setLevel(logging.DEBUG)
 
-    if getattr(sys, 'frozen', False):
+    if getattr(sys, 'frozen', False): # If the program is running in a PyInstaller bundle
         app_path = sys._MEIPASS
     else:
-        app_path = os.path.dirname(os.path.abspath(__file__))
+        app_path = os.path.dirname(os.path.abspath(__file__)) # Else the program is running in a normal Python environment
         parent_dir = os.path.dirname(app_path)
 
     alarms = "alarms"

@@ -17,8 +17,7 @@ phone_book_file = os.path.join(config_dir, 'phone_book.json')
 opcua_config_file = os.path.join(config_dir, 'opcua_config.json')
 
 # Load phone_book_file into memory
-with open(phone_book_file, 'r', encoding='utf8') as f:
-    users = json.load(f)
+
 
 
 async def subscribe_to_server(adresses: str, username: str, password: str):
@@ -30,7 +29,7 @@ async def subscribe_to_server(adresses: str, username: str, password: str):
 
             # Check if client is None before creating a subscription
             if client is not None:
-                handler = SubHandler(adresses, users)
+                handler = SubHandler(adresses)
                 sub = await client.create_subscription(1000, handler)
                 alarmConditionType = client.get_node("ns=0;i=2915")
                 server_node = client.get_node(ua.NodeId(Identifier=2253, NodeIdType=ua.NodeIdType.Numeric, NamespaceIndex=0))
@@ -47,14 +46,13 @@ async def subscribe_to_server(adresses: str, username: str, password: str):
             await asyncio.sleep(10)
 
 class SubHandler:
-    def __init__(self, address: str, users: list):
+    def __init__(self, address: str):
         self.address = address
-        self.users = users
 
     async def event_notification(self, event):
 
         try:
-            message = str(event.Message.Text)
+            opcua_alarm_message = str(event.Message.Text)
             date = event.Time
             active_state_id = None
             severity = event.Severity
@@ -78,7 +76,7 @@ class SubHandler:
 
             logger_opcua_alarm.error(
                                     f"New event received from {self.address}:"
-                                    f"Message: {message}"
+                                    f"Message: {opcua_alarm_message}"
                                     f"Date: {date}"
                                     f"State: {active_state_id}"
                                     f"Severity: {severity}"
@@ -92,11 +90,14 @@ class SubHandler:
                                     f"identifier: {identifier}"
                                     )
 
-            for user in self.users:
+            with open(phone_book_file, 'r', encoding='utf8') as f:
+                users = json.load(f)
+
+            for user in users:
                 if user.get('Active') == 'Yes':
                     phone_number = user.get('phone_number')
                     name = user.get('Namn')
-                    message = f"Medelande: {message}, Allvar: {severity}"
+                    message = f"Medelande: {opcua_alarm_message}, Allvar: {severity}"
                     send_sms(phone_number, message)
                     logger_opcua_alarm.info(f"Sent SMS to {name} at {phone_number}")
 

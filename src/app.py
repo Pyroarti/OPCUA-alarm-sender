@@ -5,13 +5,14 @@ import os
 from opcua_alarm import monitor_alarms
 
 app = Flask(__name__, template_folder='../templates', static_folder="../static")
-app.secret_key = 'Very secret key'
+secret_key = os.urandom(24)
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 parent_dir = os.path.dirname(current_dir)
 config_dir = os.path.join(parent_dir, "configs")
 phone_book_file = os.path.join(config_dir, 'phone_book.json')
-flask_config_file = os.path.join(config_dir, 'flask_config.json')
+flask_login_config_file = os.path.join(config_dir, 'flask_login_config.json')
+flask_server_config_file = os.path.join(config_dir, 'flask_server_config.json')
 
 
 @app.route("/login", methods=["GET", "POST"])
@@ -19,7 +20,7 @@ def login():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-        with open (flask_config_file, 'r', encoding='utf8') as f:
+        with open (flask_login_config_file, 'r', encoding='utf8') as f:
             data = json.load(f)
             if username == data['username'] and password == data['password']:
                 session['logged_in'] = True
@@ -119,4 +120,9 @@ def edit_user(id):
 
 
 def main():
-    app.run(host="192.168.11.45", port=7777, debug=False)
+    with open (flask_server_config_file, 'r', encoding='utf8') as server_data:
+        data = json.load(server_data)
+        host = data['ip_adress']
+        port = data['port']
+
+    app.run(host=host, port=port, debug=False)
