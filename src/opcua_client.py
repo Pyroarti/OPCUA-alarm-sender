@@ -3,11 +3,10 @@ from asyncua import Client, ua
 from create_logger import setup_logger
 
 
-
 logger = setup_logger('opcua_client')
 
-# Timeout in seconds
 CLIENT_TIMEOUT = 4
+
 
 async def connect_opcua(url: str, username: str, password: str):
 
