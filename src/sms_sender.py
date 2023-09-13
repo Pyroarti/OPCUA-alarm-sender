@@ -5,7 +5,7 @@ from create_logger import setup_logger
 logger = setup_logger(__name__)
 
 def send_at(ser, command, response, timeout=2, max_retries=3):
-    """"
+    """
     Send AT command to GSM modem and check for response.
     :param ser: Serial object
     :param command: AT command to send
@@ -34,7 +34,14 @@ def send_at(ser, command, response, timeout=2, max_retries=3):
 
     logger.error(f"Max retries reached for command {command}. Giving up.")
 
+
 def send_sms(phone_number: str, message: str):
+    """
+    Send SMS using GSM modem.
+    :param phone_number: Phone number to send SMS to
+    :param message: Message to send
+    """
+
     try:
         with serial.Serial('/dev/ttyUSB0', 115200, timeout=2) as ser:
             send_at(ser, 'AT', 'OK')
@@ -59,6 +66,4 @@ def send_sms(phone_number: str, message: str):
         logger.error(f"Serial Exception: {e}")
     except Exception as e:
         logger.error(f"General Exception: {e}")
-
-
 
