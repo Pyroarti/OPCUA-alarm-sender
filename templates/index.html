@@ -2,6 +2,8 @@
 <html>
 <head>
     <title>OPC UA Alarm Notifier</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='nouislider.min.css') }}">
+    <script src="{{ url_for('static', filename='nouislider.min.js') }}"></script>
     <style>
 
         body {
@@ -63,6 +65,21 @@
             color: red;
             list-style: none;
         }
+
+        #severity-values {
+            margin-top: 10px;
+            margin-bottom: 10px;
+        }
+
+        #severity-slider {
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+
+        input[type="submit"] {
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
     </style>
 </head>
 <body>
@@ -79,12 +96,18 @@
         {% endif %}
     {% endwith %}
 
-    <form method="post" action="/">
+    <form method="post" action="/" id="severity-form">
         <label for="name">Namn:</label>
         <input type="text" id="name" name="name" required><br>
 
         <label for="phone_number">Telefon Nummer:</label>
         <input type="text" id="phone_number" name="phone_number" required><br>
+
+        <div id="severity-values"></div>
+        <div id="severity-slider"></div>
+
+        <input type="hidden" id="lowest_severity" name="lowest_severity">
+        <input type="hidden" id="highest_severity" name="highest_severity">
 
         <input type="submit" value="Spara Mottagare">
     </form>
@@ -97,6 +120,9 @@
                 <th>Telefon nummer</th>
                 <th>Aktiv</th>
                 <th>Editera mottagare</th>
+                <th>Lägsta Larmnivå</th>
+                <th>Högsta Larmnivå</th>
+                <th>Skicka test sms</th>
             </tr>
         </thead>
         <tbody>
@@ -105,17 +131,51 @@
                     <td>{{ user.Name }}</td>
                     <td>{{ user.phone_number }}</td>
                     <td>
-                        <!-- Wrapping the checkbox within <td> -->
                         <input type="checkbox" {% if user.Active == 'Yes' %}checked{% endif %} disabled>
                     </td>
                     <td>
-                        <!-- Each edit button links to a Flask route to edit that user -->
                         <a href="{{ url_for('edit_user', id=loop.index0) }}">Editera</a>
+                    </td>
+                    <td>{{ user.LowestSeverity }}</td>
+                    <td>{{ user.HighestSeverity }}</td>
+                    <td>
+                        <a href="{{ url_for('test_sms', id=loop.index0) }}">Testa</a>
                     </td>
                 </tr>
             {% endfor %}
         </tbody>
     </table>
+
+    <script>
+        var slider = document.getElementById('severity-slider');
+        var valuesDiv = document.getElementById('severity-values'); // The div where the values will be displayed
+
+        noUiSlider.create(slider, {
+            start: [0, 1000],
+            connect: true,
+            step: 10,
+            range: {
+                'min': 0,
+                'max': 1000
+            }
+        });
+
+        slider.noUiSlider.on('update', function (values, handle) {
+            var lowerValue = Math.round(values[0]);
+            var higherValue = Math.round(values[1]);
+            valuesDiv.innerHTML = "Lägsta Larmnivå: " + lowerValue + ", Högsta Larmnivå: " + higherValue;
+        });
+
+        var form = document.getElementById('severity-form');
+        var lowestSeverityInput = document.getElementById('lowest_severity');
+        var highestSeverityInput = document.getElementById('highest_severity');
+
+        form.addEventListener('submit', function() {
+            var severityValues = slider.noUiSlider.get();
+            lowestSeverityInput.value = Math.round(severityValues[0]);
+            highestSeverityInput.value = Math.round(severityValues[1]);
+        });
+    </script>
 
 </body>
 </html>

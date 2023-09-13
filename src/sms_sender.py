@@ -62,3 +62,5 @@ def send_sms(phone_number: str, message: str):
         logger.error(f"Serial Exception: {e}")
     except Exception as e:
         logger.error(f"General Exception: {e}")
+
+

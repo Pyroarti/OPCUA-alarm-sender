@@ -91,10 +91,10 @@ class SubHandler:
                 users = json.load(f)
 
             for user in users:
-                if user.get('Active') == 'Yes':
+                if user.get('Active') == 'Yes' and user.get('LowestSeverity') <= severity <= user.get('HighestSeverity'):
                     phone_number = user.get('phone_number')
                     name = user.get('Namn')
-                    message = f"Medelande från Elmo pumpstation: {opcua_alarm_message}"
+                    message = f"Medelande från Elmo pumpstation: {opcua_alarm_message}, allvarlighetsgrad: {severity}"
                     send_sms(phone_number, message)
                     logger_opcua_alarm.info(f"Sent SMS to {name} at {phone_number}")
 

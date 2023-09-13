@@ -42,6 +42,8 @@ def index():
     if request.method == 'POST':
         name = request.form['name']
         phone_number = request.form['phone_number']
+        lowest_severity = request.form['lowest_severity']
+        highest_severity = request.form['highest_severity']
 
         if not name or not phone_number:
             flash('Please fill out all the fields.')
@@ -55,9 +57,11 @@ def index():
                     return redirect(url_for('index'))
 
             data.append({
-                'Name': name,
-                'phone_number': phone_number,
-                'Active': 'Yes'
+            'Name': name,
+            'phone_number': phone_number,
+            'LowestSeverity': lowest_severity,
+            'HighestSeverity': highest_severity,
+            'Active': 'Yes'
             })
 
             f.seek(0)
@@ -102,10 +106,14 @@ def edit_user(id):
             new_name = request.form['name']
             new_phone_number = request.form['phone_number']
             new_active = 'Yes' if 'active' in request.form else 'No'
+            new_lowest_severity = request.form['lowest_severity']
+            new_highest_severity = request.form['highest_severity']
 
             user_to_edit['Name'] = new_name
             user_to_edit['phone_number'] = new_phone_number
             user_to_edit['Active'] = new_active
+            user_to_edit['LowestSeverity'] = new_lowest_severity
+            user_to_edit['HighestSeverity'] = new_highest_severity
 
             f.seek(0)
             json.dump(data, f, indent=4)
@@ -116,6 +124,27 @@ def edit_user(id):
 
         return render_template('edit_user.html', user=user_to_edit, id=id)
 
+
+@app.route("/test_sms/<int:id>", methods=["GET"])
+def test_sms(id):
+    from sms_sender import send_sms
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+
+    with open(phone_book_file, 'r', encoding='utf8') as f:
+        data = json.load(f)
+
+    if id < 0 or id >= len(data):
+        flash('Invalid user ID.')
+        return redirect(url_for('index'))
+
+    user = data[id]
+    phone_number = user['phone_number']
+
+    send_sms(phone_number, 'Test SMS från Elmo pumpstation.')
+    flash('Test SMS skickat.')
+
+    return redirect(url_for('index'))
 
 def main():
     with open (flask_server_config_file, 'r', encoding='utf8') as server_data:

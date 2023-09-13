@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <link rel="stylesheet" href="{{ url_for('static', filename='nouislider.min.css') }}">
+    <script src="{{ url_for('static', filename='nouislider.min.js') }}"></script>
     <style>
         /* Apply a background color to the entire body */
         body {
@@ -70,26 +72,66 @@
 </head>
 <body>
 
-<div class="container">
-    <h1>Edit User</h1>
+    <div class="container">
+        <h1>Edit User</h1>
 
-    <form method="post" action="{{ url_for('edit_user', id=id) }}">
-        <label for="name">Namn:</label>
-        <input type="text" id="name" name="name" value="{{ user.Name }}" required><br>
+        <form method="post" action="{{ url_for('edit_user', id=id) }}">
+            <label for="name">Namn:</label>
+            <input type="text" id="name" name="name" value="{{ user.Name }}" required><br>
 
-        <label for="phone_number">Telefon numer:</label>
-        <input type="text" id="phone_number" name="phone_number" value="{{ user.phone_number }}" required><br>
+            <label for="phone_number">Telefon numer:</label>
+            <input type="text" id="phone_number" name="phone_number" value="{{ user.phone_number }}" required><br>
 
-        <label for="active">Aktiverad:</label>
-        <input type="checkbox" id="active" name="active" {% if user.Active == 'Yes' %}checked{% endif %}><br>
+            <label for="active">Aktiverad:</label>
+            <input type="checkbox" id="active" name="active" {% if user.Active == 'Yes' %}checked{% endif %}><br>
 
-        <input type="submit" value="Updatera användare" class="update-button"><br> <!-- Added <br> to separate buttons -->
-    </form>
+            <label for="severity-slider">Severity:</label>
+            <div id="severity-slider"></div>
+            <div id="severity-values"></div> <!-- New div for displaying the slider values -->
 
-    <form method="post" action="{{ url_for('edit_user', id=id, action='delete') }}">
-        <input type="submit" value="Ta bort användare" class="delete-button">
-    </form>
-</div>
+            <input type="hidden" id="lowest_severity" name="lowest_severity">
+            <input type="hidden" id="highest_severity" name="highest_severity">
+
+            <input type="submit" value="Updatera användare" class="update-button"><br>
+        </form>
+
+        <form method="post" action="{{ url_for('edit_user', id=id, action='delete') }}">
+            <input type="submit" value="Ta bort användare" class="delete-button">
+        </form>
+    </div>
+
+    <script>
+      var slider = document.getElementById('severity-slider');
+
+      noUiSlider.create(slider, {
+        start: [0, 1000],
+        connect: true,
+        step: 10,
+        range: {
+          'min': 0,
+          'max': 1000
+        }
+      });
+
+      var severityValues = slider.noUiSlider.get();
+      document.getElementById('severity-values').innerHTML = `Lägsta Larmnivå: ${severityValues[0]}, Högsta Larmnivå: ${severityValues[1]}`;
+
+      slider.noUiSlider.on('update', function(values, handle) {
+        var lowest = Math.round(values[0]);
+        var highest = Math.round(values[1]);
+        document.getElementById('severity-values').innerHTML = `Lägsta Larmnivå: ${lowest}, Högsta Larmnivå: ${highest}`;
+    });
+
+      var form = document.forms[0];
+      var lowestSeverityInput = document.getElementById('lowest_severity');
+      var highestSeverityInput = document.getElementById('highest_severity');
+
+      form.addEventListener('submit', function() {
+        var severityValues = slider.noUiSlider.get();
+        lowestSeverityInput.value = Math.round(severityValues[0]);
+        highestSeverityInput.value = Math.round(severityValues[1]);
+    });
+    </script>
 
 </body>
 </html>
