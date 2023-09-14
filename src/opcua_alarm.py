@@ -1,11 +1,14 @@
 import asyncio
-from asyncua import ua
 import os
 import json
+from datetime import datetime
+
+from asyncua import ua
 
 from create_logger import setup_logger
 from opcua_client import connect_opcua
 from sms_sender import send_sms
+from data_encrypt import DataEncrypt
 
 logger_alarm = setup_logger('opcua_prog_alarm')
 logger_opcua_alarm = setup_logger("opcua_alarms")
@@ -90,23 +93,40 @@ class SubHandler:
             with open(phone_book_file, 'r', encoding='utf8') as f:
                 users = json.load(f)
 
+            # Get current time and day
+            current_time = datetime.now().time()
+            current_day = datetime.now().strftime('%A')  # Get 'Monday', 'Tuesday',...
+
             for user in users:
-                if user.get('Active') == 'Yes' and user.get('LowestSeverity') <= severity <= user.get('HighestSeverity'):
-                    phone_number = user.get('phone_number')
-                    name = user.get('Namn')
-                    message = f"Medelande från Elmo pumpstation: {opcua_alarm_message}, allvarlighetsgrad: {severity}"
-                    send_sms(phone_number, message)
-                    logger_opcua_alarm.info(f"Sent SMS to {name} at {phone_number}")
+                if user.get('Active') == 'Yes':
+                    time_settings = user.get('timeSettings', [])
+
+                    for setting in time_settings:
+                        if current_day in setting.get('days', []):
+                            # Convert start and end time to datetime.time
+                            start_time = datetime.strptime(setting.get('startTime', '00:00'), '%H:%M').time()
+                            end_time = datetime.strptime(setting.get('endTime', '00:00'), '%H:%M').time()
+
+                            if start_time <= current_time <= end_time:
+                                lowest_severity = setting.get('lowestSeverity', 0) # just incase the user has not set any severity
+                                highest_severity = setting.get('highestSeverity', 1000)
+
+                                if lowest_severity <= severity <= highest_severity:
+                                    phone_number = user.get('phone_number')
+                                    name = user.get('Namn')
+                                    message = f"Medelande från Elmo pumpstation: {opcua_alarm_message}, allvarlighetsgrad: {severity}"
+                                    send_sms(phone_number, message)
+                                    logger_opcua_alarm.info(f"Sent SMS to {name} at {phone_number}")
 
         except Exception as e:
             logger_alarm.error(f"Error while processing event notification from {self.address} - Error: {e}")
 
 
 async def monitor_alarms():
-    with open(opcua_config_file, 'r') as file:
-        json_data = json.load(file)
-        ip_address = json_data["adress"]
-        username = json_data["username"]
-        password = json_data["password"]
+    data_encrypt = DataEncrypt()
+    opcua_config = data_encrypt.encrypt_credentials('opcua_config.json', "opcua_key")
+    encrypted_username = opcua_config["username"]
+    encrypted_password = opcua_config["password"]
+    encrypted_adress = opcua_config["adress"]
 
-    await subscribe_to_server(ip_address, username, password)
+    await subscribe_to_server(encrypted_adress, encrypted_username, encrypted_password)

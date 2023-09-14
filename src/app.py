@@ -1,6 +1,11 @@
 from flask import Flask, request, render_template, redirect, flash, url_for, session
 import json
 import os
+import re
+
+from sms_sender import send_sms
+from data_encrypt import DataEncrypt
+
 
 app = Flask(__name__, template_folder='../templates', static_folder="../static")
 app.secret_key = os.urandom(24)
@@ -8,24 +13,34 @@ app.secret_key = os.urandom(24)
 current_dir = os.path.dirname(os.path.abspath(__file__))
 parent_dir = os.path.dirname(current_dir)
 config_dir = os.path.join(parent_dir, "configs")
+
 phone_book_file = os.path.join(config_dir, 'phone_book.json')
-flask_login_config_file = os.path.join(config_dir, 'flask_login_config.json')
 flask_server_config_file = os.path.join(config_dir, 'flask_server_config.json')
+
+data_encrypt = DataEncrypt()
+flask_config = data_encrypt.encrypt_credentials('flask_login_config.json', "flask_key")
 
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
+    """
+    Login page.
+    Username and password are stored crypted in a JSON file.
+    Not the best security, but good enough for this project.
+    """
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-        with open (flask_login_config_file, 'r', encoding='utf8') as f:
-            data = json.load(f)
-            if username == data['username'] and password == data['password']:
-                session['logged_in'] = True
-                session['username'] = username
-                return redirect(url_for('index'))
-            else:
-                flash('Fel inloggnings information!')
+
+        encrypted_username = flask_config["username"]
+        encrypted_password = flask_config["password"]
+
+        if username == encrypted_username and password == encrypted_password:
+            session['logged_in'] = True
+            session['username'] = username
+            return redirect(url_for('index'))
+        else:
+            flash('Fel inloggnings information!')
     return render_template("login.html")
 
 
@@ -42,11 +57,26 @@ def index():
     if request.method == 'POST':
         name = request.form['name']
         phone_number = request.form['phone_number']
-        lowest_severity = request.form['lowest_severity']
-        highest_severity = request.form['highest_severity']
 
-        if not name or not phone_number:
-            flash('Please fill out all the fields.')
+        time_settings = [
+            {
+                "days": request.form.getlist('days1'),
+                "startTime": request.form['startTime1'],
+                "endTime": request.form['endTime1'],
+                "lowestSeverity": request.form['lowestSeverity1'],
+                "highestSeverity": request.form['highestSeverity1']
+            },
+            {
+                "days": request.form.getlist('days2'),
+                "startTime": request.form['startTime2'],
+                "endTime": request.form['endTime2'],
+                "lowestSeverity": request.form['lowestSeverity2'],
+                "highestSeverity": request.form['highestSeverity2']
+            }
+            ]
+
+        if not name or not phone_number or not time_settings:
+            flash('Fyll i alla fält.')
             return redirect(url_for('index'))
 
         with open(phone_book_file, 'r+', encoding='utf8') as f:
@@ -59,10 +89,10 @@ def index():
             data.append({
             'Name': name,
             'phone_number': phone_number,
-            'LowestSeverity': lowest_severity,
-            'HighestSeverity': highest_severity,
-            'Active': 'Yes'
+            'Active': 'Yes',
+            'timeSettings': time_settings
             })
+
 
             f.seek(0)
             json.dump(data, f, indent=4)
@@ -93,7 +123,7 @@ def edit_user(id):
         user_to_edit = data[id]
 
         if action == 'delete':
-            del data[id]  # Delete the user from the list
+            del data[id]
 
             f.seek(0)
             json.dump(data, f, indent=4)
@@ -103,17 +133,33 @@ def edit_user(id):
             return redirect(url_for('index'))
 
         if request.method == 'POST':
+            time_settings = [
+            {
+                "days": request.form.getlist('days1'),
+                "startTime": request.form['startTime1'],
+                "endTime": request.form['endTime1'],
+                "lowestSeverity": request.form['lowestSeverity1'],
+                "highestSeverity": request.form['highestSeverity1']
+            },
+            {
+                "days": request.form.getlist('days2'),
+                "startTime": request.form['startTime2'],
+                "endTime": request.form['endTime2'],
+                "lowestSeverity": request.form['lowestSeverity2'],
+                "highestSeverity": request.form['highestSeverity2']
+            }
+            ]
             new_name = request.form['name']
             new_phone_number = request.form['phone_number']
             new_active = 'Yes' if 'active' in request.form else 'No'
-            new_lowest_severity = request.form['lowest_severity']
-            new_highest_severity = request.form['highest_severity']
+            new_time_settings = time_settings
+
 
             user_to_edit['Name'] = new_name
             user_to_edit['phone_number'] = new_phone_number
             user_to_edit['Active'] = new_active
-            user_to_edit['LowestSeverity'] = new_lowest_severity
-            user_to_edit['HighestSeverity'] = new_highest_severity
+            user_to_edit['timeSettings'] = new_time_settings
+
 
             f.seek(0)
             json.dump(data, f, indent=4)
@@ -127,7 +173,11 @@ def edit_user(id):
 
 @app.route("/test_sms/<int:id>", methods=["GET"])
 def test_sms(id):
-    from sms_sender import send_sms
+    """
+    Send a test SMS to the user with the given ID.
+    :param id: User ID
+    """
+
     if not session.get('logged_in'):
         return redirect(url_for('login'))
 

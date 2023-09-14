@@ -49,7 +49,7 @@ def send_sms(phone_number: str, message: str):
             send_at(ser, 'AT+CSCS="UCS2"', 'OK')
 
             phone_number_hex = phone_number.encode('utf-16-be').hex().upper()
-            send_at(ser, f'AT+CMGS="{phone_number_hex}"', '>')  # Send number in UCS-2
+            send_at(ser, f'AT+CMGS="{phone_number_hex}"', '>')
 
             message_hex = message.encode('utf-16-be').hex().upper()  # Convert the message to UCS-2 hex string
             ser.write((message_hex + chr(26)).encode())  # chr(26) is the ASCII code for CTRL+Z

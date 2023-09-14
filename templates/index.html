@@ -46,6 +46,12 @@
             width: 250px;
         }
 
+        input[type="number"] {
+            padding: 5px;
+            margin-bottom: 10px;
+            width: 100px;
+        }
+
         input[type="submit"] {
             padding: 10px 20px;
             background-color: #007bff;
@@ -81,6 +87,25 @@
             margin-top: 20px;
             margin-bottom: 20px;
         }
+
+
+        .time-input {
+            font-size: 150%;
+            width: 100px;
+            padding-top: 10px;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        .checkbox {
+            transform: scale(1.5);
+            width: 1.5em;
+            height: 1.5em;
+            margin-bottom: 20px;
+
+        }
+
+
     </style>
 </head>
 <body>
@@ -104,13 +129,54 @@
         <label for="phone_number">Telefon Nummer:</label>
         <input type="text" id="phone_number" name="phone_number" required><br>
 
-        <div id="severity-values"></div>
-        <div id="severity-slider"></div>
 
-        <input type="hidden" id="lowest_severity" name="lowest_severity">
-        <input type="hidden" id="highest_severity" name="highest_severity">
+        <fieldset>
+            <legend>Tidsinställningar 1</legend>
+            <label>Dagar:</label>
+            <input type="checkbox" class="checkbox" name="days1" value="Måndag"> Måndag
+            <input type="checkbox" class="checkbox" name="days1" value="Tisdag"> Tisdag
+            <input type="checkbox" class="checkbox" name="days1" value="Onsdag"> Onsdag
+            <input type="checkbox" class="checkbox" name="days1" value="Torsdag"> Torsdag
+            <input type="checkbox" class="checkbox" name="days1" value="Fredag"> Fredag
 
-        <input type="submit" value="Spara Mottagare">
+            <br>
+
+            <label for="startTime1">Start tid:</label>
+            <input type="time" class = "time-input" id="startTime1" name="startTime1" required><br>
+
+            <label for="endTime1">Slut tid:</label>
+            <input type="time" class = "time-input" id="endTime1" name="endTime1" required><br>
+
+            <label for="lowestSeverity1">Lägsta allvarlighetsgrad:</label>
+            <input type="number" id="lowestSeverity1" name="lowestSeverity1" required><br>
+
+            <label for="highestSeverity1">Högsta allvarlighetsgrad:</label>
+            <input type="number" id="highestSeverity1" name="highestSeverity1" required><br>
+          </fieldset>
+
+          <fieldset>
+            <legend>Tidsinställningar 2</legend>
+            <label>Dagar:</label>
+            <input type="checkbox" class="checkbox" name="days2" value="Lördag"> Lördag
+            <input type="checkbox" class="checkbox" name="days2" value="Söndag"> Söndag
+            <br>
+
+            <label for="startTime2">Start Tid:</label>
+            <input type="time" class = "time-input" id="startTime2" name="startTime2" required><br>
+
+            <label for="endTime2">Slut tid:</label>
+            <input type="time" class = "time-input" id="endTime2" name="endTime2" required><br>
+
+            <label for="lowestSeverity2">Lägsta allvarlighetsgrad:</label>
+            <input type="number" id="lowestSeverity2" name="lowestSeverity2" required><br>
+
+            <label for="highestSeverity2">Högsta allvarlighetsgrad:</label>
+            <input type="number" id="highestSeverity2" name="highestSeverity2" required><br>
+
+            <input type="submit" value="Spara Mottagare">
+
+          </fieldset>
+        </form>
     </form>
 
     <h2>Mottagare</h2>
@@ -121,8 +187,6 @@
                 <th>Telefon nummer</th>
                 <th>Aktiv</th>
                 <th>Editera mottagare</th>
-                <th>Lägsta Larmnivå</th>
-                <th>Högsta Larmnivå</th>
                 <th>Skicka test sms</th>
             </tr>
         </thead>
@@ -137,8 +201,6 @@
                     <td>
                         <a href="{{ url_for('edit_user', id=loop.index0) }}">Editera</a>
                     </td>
-                    <td>{{ user.LowestSeverity }}</td>
-                    <td>{{ user.HighestSeverity }}</td>
                     <td>
                         <a href="{{ url_for('test_sms', id=loop.index0) }}">Testa</a>
                     </td>
@@ -146,37 +208,6 @@
             {% endfor %}
         </tbody>
     </table>
-
-    <script>
-        var slider = document.getElementById('severity-slider');
-        var valuesDiv = document.getElementById('severity-values'); // The div where the values will be displayed
-
-        noUiSlider.create(slider, {
-            start: [0, 1000],
-            connect: true,
-            step: 10,
-            range: {
-                'min': 0,
-                'max': 1000
-            }
-        });
-
-        slider.noUiSlider.on('update', function (values, handle) {
-            var lowerValue = Math.round(values[0]);
-            var higherValue = Math.round(values[1]);
-            valuesDiv.innerHTML = "Lägsta Larmnivå: " + lowerValue + ", Högsta Larmnivå: " + higherValue;
-        });
-
-        var form = document.getElementById('severity-form');
-        var lowestSeverityInput = document.getElementById('lowest_severity');
-        var highestSeverityInput = document.getElementById('highest_severity');
-
-        form.addEventListener('submit', function() {
-            var severityValues = slider.noUiSlider.get();
-            lowestSeverityInput.value = Math.round(severityValues[0]);
-            highestSeverityInput.value = Math.round(severityValues[1]);
-        });
-    </script>
 
 </body>
 </html>

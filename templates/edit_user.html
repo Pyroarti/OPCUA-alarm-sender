@@ -4,28 +4,17 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='nouislider.min.css') }}">
     <script src="{{ url_for('static', filename='nouislider.min.js') }}"></script>
     <style>
-        /* Apply a background color to the entire body */
+
         body {
             background-color: #f5f5f5;
             font-family: Arial, sans-serif;
         }
 
-        /* Center form on page */
-        .container {
-            max-width: 600px;
-            margin: 50px auto;
-            background-color: #ffffff;
-            padding: 20px;
-            border-radius: 5px;
-            box-shadow: 0px 0px 10px rgba(0,0,0,0.1);
-        }
 
-        /* Increase size of headings */
         h1 {
             font-size: 1.5em;
         }
 
-        /* Style labels and inputs */
         label, input {
             font-size: 1.2em;
         }
@@ -36,7 +25,6 @@
             margin-bottom: 10px;
         }
 
-        /* Style the input fields */
         input[type="text"] {
             width: 100%;
             padding: 10px;
@@ -46,7 +34,6 @@
             box-sizing: border-box;
         }
 
-        /* Style the submit buttons */
         input[type="submit"] {
             width: 35%;
             height: 50px;
@@ -63,9 +50,21 @@
             color: white;
         }
 
-        input[type="checkbox"] {
-            transform: scale(3);  /* Scale the checkbox */
-            margin-right: 1px;
+
+        .time-input {
+            font-size: 150%;
+            width: 100px;
+            padding-top: 10px;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        .checkbox {
+            transform: scale(1.2);
+            width: 1.5em;
+            height: 1.5em;
+            margin-bottom: 20px;
+
         }
 
     </style>
@@ -83,14 +82,31 @@
             <input type="text" id="phone_number" name="phone_number" value="{{ user.phone_number }}" required><br>
 
             <label for="active">Aktiverad:</label>
-            <input type="checkbox" id="active" name="active" {% if user.Active == 'Yes' %}checked{% endif %}><br>
+            <input type="checkbox" class="checkbox" id="active" name="active" {% if user.Active == 'Yes' %}checked{% endif %}><br>
 
-            <label for="severity-slider">Severity:</label>
-            <div id="severity-slider"></div>
-            <div id="severity-values"></div> <!-- New div for displaying the slider values -->
+            {% for setting in user.timeSettings %}
+                <fieldset>
+                  <legend>Tidsinställningar</legend>
+                  <label>Dagar:</label>
+                  {% for day in ['Måndag', 'Tisdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lördag', 'Söndag'] %}
+                    <input type="checkbox" class="checkbox" name="days" value="{{ day }}" {% if day in setting.days %}checked{% endif %}> {{ day }}
+                  {% endfor %}
 
-            <input type="hidden" id="lowest_severity" name="lowest_severity">
-            <input type="hidden" id="highest_severity" name="highest_severity">
+                  <br>
+
+                  <label for="startTime">Start tid:</label>
+                  <input type="time" class="time-input" id="startTime" name="startTime" value="{{ setting.startTime }}" required><br>
+
+                  <label for="endTime">Slut tid:</label>
+                  <input type="time" class="time-input" id="endTime" name="endTime" value="{{ setting.endTime }}" required><br>
+
+                  <label for="lowestSeverity">Lägsta allvarlighetsgrad:</label>
+                  <input type="number" id="lowestSeverity" name="lowestSeverity" value="{{ setting.lowestSeverity }}" required><br>
+
+                  <label for="highestSeverity">Högsta allvarlighetsgrad:</label>
+                  <input type="number" id="highestSeverity" name="highestSeverity" value="{{ setting.highestSeverity }}" required><br>
+                </fieldset>
+            {% endfor %}
 
             <input type="submit" value="Updatera användare" class="update-button"><br>
         </form>
@@ -100,38 +116,7 @@
         </form>
     </div>
 
-    <script>
-      var slider = document.getElementById('severity-slider');
 
-      noUiSlider.create(slider, {
-        start: [0, 1000],
-        connect: true,
-        step: 10,
-        range: {
-          'min': 0,
-          'max': 1000
-        }
-      });
-
-      var severityValues = slider.noUiSlider.get();
-      document.getElementById('severity-values').innerHTML = `Lägsta Larmnivå: ${severityValues[0]}, Högsta Larmnivå: ${severityValues[1]}`;
-
-      slider.noUiSlider.on('update', function(values, handle) {
-        var lowest = Math.round(values[0]);
-        var highest = Math.round(values[1]);
-        document.getElementById('severity-values').innerHTML = `Lägsta Larmnivå: ${lowest}, Högsta Larmnivå: ${highest}`;
-    });
-
-      var form = document.forms[0];
-      var lowestSeverityInput = document.getElementById('lowest_severity');
-      var highestSeverityInput = document.getElementById('highest_severity');
-
-      form.addEventListener('submit', function() {
-        var severityValues = slider.noUiSlider.get();
-        lowestSeverityInput.value = Math.round(severityValues[0]);
-        highestSeverityInput.value = Math.round(severityValues[1]);
-    });
-    </script>
 
 </body>
 </html>
