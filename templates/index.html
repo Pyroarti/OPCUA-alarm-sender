@@ -105,6 +105,14 @@
 
         }
 
+        .update-button {
+            background-color: #009afa;
+            color: white;
+            width: 10%;
+            height: 80px;
+            font-size: 25px;
+        }
+
 
     </style>
 </head>
@@ -122,62 +130,16 @@
         {% endif %}
     {% endwith %}
 
-    <form method="post" action="/" id="severity-form">
-        <label for="name">Namn:</label>
-        <input type="text" id="name" name="name" required><br>
+    <button id="createUserButton" class="update-button">Skapa användare</button>
 
-        <label for="phone_number">Telefon Nummer:</label>
-        <input type="text" id="phone_number" name="phone_number" required><br>
+    <script>
+    document.getElementById('createUserButton').addEventListener('click', function() {
+        window.location.href = "{{ url_for('create_user') }}";
+    });
+    </script>
 
 
-        <fieldset>
-            <legend>Tidsinställningar 1</legend>
-            <label>Dagar:</label>
-            <input type="checkbox" class="checkbox" name="days1" value="Måndag"> Måndag
-            <input type="checkbox" class="checkbox" name="days1" value="Tisdag"> Tisdag
-            <input type="checkbox" class="checkbox" name="days1" value="Onsdag"> Onsdag
-            <input type="checkbox" class="checkbox" name="days1" value="Torsdag"> Torsdag
-            <input type="checkbox" class="checkbox" name="days1" value="Fredag"> Fredag
 
-            <br>
-
-            <label for="startTime1">Start tid:</label>
-            <input type="time" class = "time-input" id="startTime1" name="startTime1" required><br>
-
-            <label for="endTime1">Slut tid:</label>
-            <input type="time" class = "time-input" id="endTime1" name="endTime1" required><br>
-
-            <label for="lowestSeverity1">Lägsta allvarlighetsgrad:</label>
-            <input type="number" id="lowestSeverity1" name="lowestSeverity1" required><br>
-
-            <label for="highestSeverity1">Högsta allvarlighetsgrad:</label>
-            <input type="number" id="highestSeverity1" name="highestSeverity1" required><br>
-          </fieldset>
-
-          <fieldset>
-            <legend>Tidsinställningar 2</legend>
-            <label>Dagar:</label>
-            <input type="checkbox" class="checkbox" name="days2" value="Lördag"> Lördag
-            <input type="checkbox" class="checkbox" name="days2" value="Söndag"> Söndag
-            <br>
-
-            <label for="startTime2">Start Tid:</label>
-            <input type="time" class = "time-input" id="startTime2" name="startTime2" required><br>
-
-            <label for="endTime2">Slut tid:</label>
-            <input type="time" class = "time-input" id="endTime2" name="endTime2" required><br>
-
-            <label for="lowestSeverity2">Lägsta allvarlighetsgrad:</label>
-            <input type="number" id="lowestSeverity2" name="lowestSeverity2" required><br>
-
-            <label for="highestSeverity2">Högsta allvarlighetsgrad:</label>
-            <input type="number" id="highestSeverity2" name="highestSeverity2" required><br>
-
-            <input type="submit" value="Spara Mottagare">
-
-          </fieldset>
-        </form>
-    </form>
 
     <h2>Mottagare</h2>
     <table>

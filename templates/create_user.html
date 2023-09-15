@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" href="{{ url_for('static', filename='nouislider.min.css') }}">
+    <script src="{{ url_for('static', filename='nouislider.min.js') }}"></script>
+    <style>
+
+        body {
+            background-color: #f5f5f5;
+            font-family: Arial, sans-serif;
+        }
+
+
+        h1 {
+            font-size: 1.5em;
+        }
+
+        label, input {
+            font-size: 1.2em;
+        }
+
+        label {
+            display: inline-block;
+            width: 100px;
+            margin-bottom: 10px;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            box-sizing: border-box;
+        }
+
+        input[type="submit"] {
+            width: 35%;
+            height: 50px;
+            margin-bottom: 10px;
+        }
+
+        input[type="number"] {
+            width: 35%;
+            height: 30px;
+            margin-bottom: 10px;
+            margin-left: 50px;
+        }
+
+        .update-button {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .delete-button {
+            background-color: red;
+            color: white;
+        }
+
+
+        .time-input {
+            font-size: 150%;
+            width: 100px;
+            padding-top: 10px;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        .checkbox {
+            transform: scale(1.2);
+            width: 1.5em;
+            height: 1.5em;
+            margin-bottom: 20px;
+
+        }
+
+        .button {
+            background-color: #009afa;
+            color: white;
+            width: 10%;
+            height: 80px;
+            font-size: 25px;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Create User</h1>
+
+        <form method="post" action="create_user" id="severity-form">
+            <label for="name">Namn:</label>
+            <input type="text" id="name" name="name" required><br>
+
+            <label for="phone_number">Telefon Nummer:</label>
+            <input type="text" id="phone_number" name="phone_number" required><br>
+
+
+            <fieldset>
+                <legend>Tidsinställningar 1</legend>
+                <label>Dagar:</label>
+                <input type="checkbox" class="checkbox" name="days1" value="Måndag"> Måndag
+                <input type="checkbox" class="checkbox" name="days1" value="Tisdag"> Tisdag
+                <input type="checkbox" class="checkbox" name="days1" value="Onsdag"> Onsdag
+                <input type="checkbox" class="checkbox" name="days1" value="Torsdag"> Torsdag
+                <input type="checkbox" class="checkbox" name="days1" value="Fredag"> Fredag
+                <input type="checkbox" class="checkbox" name="days1" value="Lördag"> Lördag
+                <input type="checkbox" class="checkbox" name="days1" value="Söndag"> Söndag
+
+                <br>
+
+                <label for="startTime1">Start tid:</label>
+                <input type="time" class = "time-input" id="startTime1" name="startTime1" required><br>
+
+                <label for="endTime1">Slut tid:</label>
+                <input type="time" class = "time-input" id="endTime1" name="endTime1" required><br>
+
+                <label for="lowestSeverity1">Lägsta allvarlighetsgrad:</label>
+                <input type="number" id="lowestSeverity1" name="lowestSeverity1" required><br>
+
+                <label for="highestSeverity1">Högsta allvarlighetsgrad:</label>
+                <input type="number" id="highestSeverity1" name="highestSeverity1" required><br>
+              </fieldset>
+
+              <fieldset>
+                <legend>Tidsinställningar 2</legend>
+                <label>Dagar:</label>
+                <input type="checkbox" class="checkbox" name="days2" value="Måndag"> Måndag
+                <input type="checkbox" class="checkbox" name="days2" value="Tisdag"> Tisdag
+                <input type="checkbox" class="checkbox" name="days2" value="Onsdag"> Onsdag
+                <input type="checkbox" class="checkbox" name="days2" value="Torsdag"> Torsdag
+                <input type="checkbox" class="checkbox" name="days2" value="Fredag"> Fredag
+                <input type="checkbox" class="checkbox" name="days2" value="Lördag"> Lördag
+                <input type="checkbox" class="checkbox" name="days2" value="Söndag"> Söndag
+                <br>
+
+                <label for="startTime2">Start Tid:</label>
+                <input type="time" class = "time-input" id="startTime2" name="startTime2" ><br>
+
+                <label for="endTime2">Slut tid:</label>
+                <input type="time" class = "time-input" id="endTime2" name="endTime2" ><br>
+
+                <label for="lowestSeverity2">Lägsta allvarlighetsgrad:</label>
+                <input type="number" id="lowestSeverity2" name="lowestSeverity2" ><br>
+
+                <label for="highestSeverity2">Högsta allvarlighetsgrad:</label>
+                <input type="number" id="highestSeverity2" name="highestSeverity2" ><br>
+
+                <input type="submit" value="Spara Mottagare"><br>
+
+                <button id="back" class="button">Gå tillbaka</button>
+
+                <script>
+                document.getElementById('back').addEventListener('click', function() {
+                    window.location.href = "{{ url_for('index') }}";
+                });
+                </script>
+
+              </fieldset>
+            </form>
+        </form>
+
+</body>
+</html>

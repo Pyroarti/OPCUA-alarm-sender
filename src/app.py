@@ -49,9 +49,22 @@ def logout():
     session['logged_in'] = False
     return redirect(url_for('index'))
 
-
-@app.route("/", methods=["GET", "POST"])
+@app.route("/")
 def index():
+    """
+    Index page.
+    """
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+
+    with open(phone_book_file, 'r', encoding='utf8') as f:
+        users = json.load(f)
+
+    return render_template('index.html', users=users)
+
+
+@app.route("/create_user", methods=["GET", "POST"])
+def create_user():
     if not session.get('logged_in'):
         return redirect(url_for('login'))
     if request.method == 'POST':
@@ -77,14 +90,14 @@ def index():
 
         if not name or not phone_number or not time_settings:
             flash('Fyll i alla fält.')
-            return redirect(url_for('index'))
+            return redirect(url_for('create_user'))
 
         with open(phone_book_file, 'r+', encoding='utf8') as f:
             data = json.load(f)
             for user in data:
                 if user['phone_number'] == phone_number:
                     flash('Det här nummret används redan')
-                    return redirect(url_for('index'))
+                    return redirect(url_for('create_user'))
 
             data.append({
             'Name': name,
@@ -99,11 +112,12 @@ def index():
             f.truncate()
 
         flash('Mottagare tillagd.')
+        return redirect(url_for('index'))
 
     with open(phone_book_file, 'r', encoding='utf8') as f:
         users = json.load(f)
 
-    return render_template('index.html', users=users)
+    return render_template('create_user.html', users=users)
 
 
 @app.route("/edit/<int:id>", methods=["GET", "POST"])
@@ -202,4 +216,4 @@ def main():
         host = data['ip_adress']
         port = data['port']
 
-    app.run(host=host, port=port, debug=False)
+    app.run(host=host, port=port, debug=True)
