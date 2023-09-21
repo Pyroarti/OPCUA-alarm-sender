@@ -1,11 +1,11 @@
 from asyncua import Client, ua
 
 from create_logger import setup_logger
-
-
-logger = setup_logger('opcua_client')
+import asyncio
 
 CLIENT_TIMEOUT = 4
+
+logger = setup_logger('opcua_client')
 
 
 async def connect_opcua(url: str, username: str, password: str):
@@ -60,3 +60,13 @@ async def connect_opcua(url: str, username: str, password: str):
         return None
 
     return client
+
+
+def run_connect_opcua():
+    loop = asyncio.get_event_loop()
+    client = loop.run_until_complete(connect_opcua("opc.tcp://192.168.11.2:4840", "LMT", "Lmt.1201"))
+    return client
+
+client = run_connect_opcua()
+print(client)
+

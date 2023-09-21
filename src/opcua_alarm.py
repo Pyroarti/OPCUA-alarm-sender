@@ -23,23 +23,28 @@ opcua_config_file = os.path.join(config_dir, 'opcua_config.json')
 async def subscribe_to_server(adresses: str, username: str, password: str):
     client = None
     while True:
+
+
         try:
             if client is None:
                 client = await connect_opcua(adresses, username, password)
-
             # Check if client is None before creating a subscription
             if client is not None:
                 handler = SubHandler(adresses)
                 sub = await client.create_subscription(1000, handler)
-                alarmConditionType = client.get_node("ns=0;i=2915")
+                print(sub)
+                alarmConditionType = client.get_node("ns=3;i=1812")
+                print(alarmConditionType)
                 server_node = client.get_node(ua.NodeId(Identifier=2253, NodeIdType=ua.NodeIdType.Numeric, NamespaceIndex=0))
-                await sub.subscribe_alarms_and_conditions(server_node, alarmConditionType)
-
+                print(server_node)
+                await sub.subscribe_alarms_and_conditions(server_node)
+                await asyncio.sleep(10)
             else:
+                print("Connection to server failed. Retrying...")
                 logger_alarm.error(f"Connection to server {adresses} failed. Retrying...")
                 await asyncio.sleep(10)
-
         except Exception as e:
+            print(f"Error connecting or subscribing to server {adresses}: {e}")
             logger_alarm.error(f"Error connecting or subscribing to server {adresses}: {e}")
             await client.disconnect()
             client = None
@@ -53,17 +58,21 @@ class SubHandler:
 
         try:
             opcua_alarm_message = str(event.Message.Text)
+
             date = event.Time
             active_state_id = None
             severity = event.Severity
             enabled_state_id = None
             suppresed_or_shelved = event.SuppressedOrShelved
-            acked_state_text = str(event.AckedState.Text)
-            acked_state_id = None
-            condition_class_id = str(event.ConditionClassId)
-            identifier = str(event.NodeId.Identifier)
-            quality = str(event.Quality)
-            retain = event.Retain
+            #acked_state_text = str(event.AckedState.Text)
+            #acked_state_id = None
+            #condition_class_id = str(event.ConditionClassId)
+            #identifier = str(event.NodeId.Identifier)
+            #quality = str(event.Quality)
+            #retain = event.Retain
+
+            print(event)
+            return
 
             if hasattr(event, "ActiveState/Id"):
                 active_state_id = getattr(event, "ActiveState/Id")
@@ -133,10 +142,22 @@ class SubHandler:
 
 
 async def monitor_alarms():
+
     data_encrypt = DataEncrypt()
     opcua_config = data_encrypt.encrypt_credentials('opcua_config.json', "opcua_key")
-    encrypted_username = opcua_config["username"]
-    encrypted_password = opcua_config["password"]
-    encrypted_adress = opcua_config["adress"]
 
-    await subscribe_to_server(encrypted_adress, encrypted_username, encrypted_password)
+    tasks = []
+
+    for server in opcua_config["servers"]:
+        encrypted_username = server["username"]
+        encrypted_password = server["password"]
+        encrypted_address = server["address"]
+
+        tasks.append(asyncio.create_task(subscribe_to_server(encrypted_address,
+                                                            encrypted_username, encrypted_password)))
+    print(server)
+    await asyncio.gather(*tasks)
+
+if __name__ == "__main__":
+    asyncio.run(monitor_alarms())
+
