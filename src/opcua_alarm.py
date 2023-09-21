@@ -95,7 +95,17 @@ class SubHandler:
 
             # Get current time and day
             current_time = datetime.now().time()
-            current_day = datetime.now().strftime('%A')  # Get 'Monday', 'Tuesday',...
+
+            day_translation = {
+                'Monday': 'Måndag',
+                'Tuesday': 'Tisdag',
+                'Wednesday': 'Onsdag',
+                'Thursday': 'Torsdag',
+                'Friday': 'Fredag',
+                'Saturday': 'Lördag',
+                'Sunday': 'Söndag'
+                }
+            current_day = day_translation[datetime.now().strftime('%A')]
 
             for user in users:
                 if user.get('Active') == 'Yes':
@@ -113,7 +123,7 @@ class SubHandler:
 
                                 if lowest_severity <= severity <= highest_severity:
                                     phone_number = user.get('phone_number')
-                                    name = user.get('Namn')
+                                    name = user.get('Name')
                                     message = f"Medelande från Elmo pumpstation: {opcua_alarm_message}, allvarlighetsgrad: {severity}"
                                     send_sms(phone_number, message)
                                     logger_opcua_alarm.info(f"Sent SMS to {name} at {phone_number}")
