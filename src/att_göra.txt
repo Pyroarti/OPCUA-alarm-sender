@@ -1,2 +1,0 @@
-lägg en try på event ifall någon rad saknas
-ska den skita i det och bara skicka text och severity

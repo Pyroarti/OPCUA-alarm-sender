@@ -3,9 +3,12 @@ from asyncua import Client, ua
 from create_logger import setup_logger
 import asyncio
 
-CLIENT_TIMEOUT = 10
 
-logger = setup_logger('opcua_client')
+##############################
+CLIENT_TIMEOUT = 10
+##############################
+
+logger = setup_logger(__name__)
 
 
 async def connect_opcua(url: str, username: str, password: str):
@@ -33,40 +36,31 @@ async def connect_opcua(url: str, username: str, password: str):
 
     except ua.uaerrors.BadUserAccessDenied as exception:
         logger.error(f"BadUserAccessDenied: {exception}")
-        return None
+        raise exception
 
     except ua.uaerrors.BadSessionNotActivated as exception:
         logger.error(f"Session activation error: {exception}")
-        return None
+        raise exception
 
     except ua.uaerrors.BadIdentityTokenRejected as exception:
         logger.error(f"Identity token rejected. Check username and password.: {exception}")
-        return None
+        raise exception
 
     except ua.uaerrors.BadIdentityTokenInvalid as exception:
         logger.error(f"Bad Identity token invalid. Check username and password.: {exception}")
-        return None
+        raise exception
 
     except ConnectionError as exception:
         logger.error(f"Connection error: Please check the server url. Or other connection properties: {exception}")
-        return None
+        raise exception
 
     except ua.UaError as exception:
         logger.error(f"General OPCUA error {exception}")
-        return None
+        raise exception
 
     except Exception as exception:
         logger.error(f"Error in connection: {exception} Type: {type(exception)}")
-        return None
+        raise exception
 
     return client
-
-
-def run_connect_opcua():
-    loop = asyncio.get_event_loop()
-    client = loop.run_until_complete(connect_opcua("opc.tcp://192.168.11.2:4840", "LMT", "Lmt.1201"))
-    return client
-
-client = run_connect_opcua()
-print(client)
 

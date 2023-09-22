@@ -1,17 +1,36 @@
-import serial
 import time
+
+import serial
+
 from create_logger import setup_logger
+from config_handler import ConfigHandler
+
+
+####################################
 
 logger = setup_logger(__name__)
 
-def send_at(ser, command, response, timeout=2, max_retries=3):
+config_manager = ConfigHandler()
+sms_config = config_manager.sms_config
+
+PORT:str = sms_config["port"]
+TIMEOUT:int = sms_config["timeout"]
+MAX_RETRIES:int = sms_config["max_retries"]
+BAUDRATE:int = sms_config["baus_rate"]
+
+####################################
+
+def send_at(ser:serial, command:str, response:str, timeout:int, max_retries:int):
     """
     Send AT command to GSM modem and check for response.
-    :param ser: Serial object
-    :param command: AT command to send
-    :param response: Expected response
-    :param timeout: Timeout in seconds
-    :param max_retries: Max number of retries
+
+    Parameters
+    ----------
+    ser: Serial object
+    command: AT command to send
+    response: Expected response
+    timeout: Timeout in seconds
+    max_retries: Max number of retries
     """
 
     retries = 0
@@ -38,15 +57,20 @@ def send_at(ser, command, response, timeout=2, max_retries=3):
 def send_sms(phone_number: str, message: str):
     """
     Send SMS using GSM modem.
-    :param phone_number: Phone number to send SMS to
-    :param message: Message to send
+    Parameters
+    ----------
+    phone_number: Phone number to send SMS to
+    message: Message to send
     """
 
     try:
-        with serial.Serial('/dev/ttyUSB0', 115200, timeout=2) as ser:
-            send_at(ser, 'AT', 'OK')
-            send_at(ser, 'AT+CMGF=1', 'OK')
-            send_at(ser, 'AT+CSCS="UCS2"', 'OK')
+        with serial.Serial(port=PORT, baudrate=BAUDRATE, timeout=TIMEOUT) as ser:
+
+            send_at(ser=ser, command='AT', response='OK',timeout=TIMEOUT, max_retries=MAX_RETRIES)
+
+            send_at(ser=ser, command='AT+CMGF=1', response='OK', timeout=TIMEOUT, max_retries=MAX_RETRIES)
+
+            send_at(ser=ser, command='AT+CSCS="UCS2"', response='OK', timeout=TIMEOUT, max_retries=MAX_RETRIES)
 
             phone_number_hex = phone_number.encode('utf-16-be').hex().upper()
             send_at(ser, f'AT+CMGS="{phone_number_hex}"', '>')

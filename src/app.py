@@ -1,10 +1,9 @@
 from flask import Flask, request, render_template, redirect, flash, url_for, session
 import json
 import os
-import re
 
 from sms_sender import send_sms
-from data_encrypt import DataEncrypt
+from data_encrypt import DataEncryptor
 
 
 app = Flask(__name__, template_folder='../templates', static_folder="../static")
@@ -17,7 +16,7 @@ config_dir = os.path.join(parent_dir, "configs")
 phone_book_file = os.path.join(config_dir, 'phone_book.json')
 flask_server_config_file = os.path.join(config_dir, 'flask_server_config.json')
 
-data_encrypt = DataEncrypt()
+data_encrypt = DataEncryptor()
 flask_config = data_encrypt.encrypt_credentials('flask_login_config.json', "flask_key")
 
 
