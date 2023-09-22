@@ -3,7 +3,7 @@ import os
 import json
 from datetime import datetime
 
-from asyncua import ua
+from asyncua import ua, Client
 
 from create_logger import setup_logger
 from opcua_client import connect_opcua
@@ -21,28 +21,30 @@ opcua_config_file = os.path.join(config_dir, 'opcua_config.json')
 
 
 async def subscribe_to_server(adresses: str, username: str, password: str):
-    client = None
+    client:Client = None
+    subscription_active = False
+
     while True:
         try:
             if client is None:
                 client = await connect_opcua(adresses, username, password)
 
-            # Check if client is None before creating a subscription
-            if client is not None:
+            # Use check_connection to check the client is connected
+            await client.check_connection()
+
+            # If the connection check passes and subscription is not yet active
+            if not subscription_active:
                 handler = SubHandler(adresses)
                 sub = await client.create_subscription(1000, handler)
                 alarmConditionType = client.get_node("ns=0;i=2915")
                 server_node = client.get_node(ua.NodeId(Identifier=2253, NodeIdType=ua.NodeIdType.Numeric, NamespaceIndex=0))
                 await sub.subscribe_alarms_and_conditions(server_node, alarmConditionType)
-
-            else:
-                logger_alarm.error(f"Connection to server {adresses} failed. Retrying...")
-                await asyncio.sleep(10)
+                subscription_active = True
 
         except Exception as e:
             logger_alarm.error(f"Error connecting or subscribing to server {adresses}: {e}")
-            await client.disconnect()
             client = None
+            subscription_active = False
             await asyncio.sleep(10)
 
 class SubHandler:
@@ -56,49 +58,31 @@ class SubHandler:
         returns: the event message
         """
 
-        try:
-            opcua_alarm_message = str(event.Message.Text)
-            date = event.Time
-            active_state_id = None
-            severity = event.Severity
-            enabled_state_id = None
-            suppresed_or_shelved = event.SuppressedOrShelved
-            acked_state_text = str(event.AckedState.Text)
-            acked_state_id = None
-            condition_class_id = str(event.ConditionClassId)
-            identifier = str(event.NodeId.Identifier)
-            quality = str(event.Quality)
-            retain = event.Retain
+        opcua_alarm_message = {
+            "New event received from": self.address
+        }
 
-            if hasattr(event, "ActiveState/Id"):
-                active_state_id = getattr(event, "ActiveState/Id")
+        attributes_to_check = [
+            "Message", "Time", "Severity", "SuppressedOrShelved",
+            "AckedState", "ConditionClassId", "NodeId", "Quality", "Retain",
+            "ActiveState", "EnabledState"
+        ]
 
-            if hasattr(event, "EnabledState/Id"):
-                enabled_state_id = getattr(event, "EnabledState/Id")
+        for attribute in attributes_to_check:
+            if hasattr(event, attribute):
+                value = getattr(event, attribute)
+                # If the value is an object with a 'Text' attribute, fetch that
+                if hasattr(value, "Text"):
+                    value = value.Text
+                opcua_alarm_message[attribute] = value
 
-            if hasattr(event, "AckedState/Id"):
-                acked_state_id = getattr(event, "AckedState/Id")
+        # If you want to handle 'Identifier' separately
+        if hasattr(event, "NodeId") and hasattr(event.NodeId, "Identifier"):
+            opcua_alarm_message["Identifier"] = str(event.NodeId.Identifier)
 
-            opcua_alarm_message = {
-                                    f"New event received from" : {self.address},
-                                    f"Message: " : {opcua_alarm_message},
-                                    f"Date: " : {date},
-                                    f"State: " : {active_state_id},
-                                    f"Severity: " : {severity},
-                                    f"Enable state id: " : {enabled_state_id},
-                                    f"suppresed_or_shelved: " : {suppresed_or_shelved},
-                                    f"acknowledged state text: " : {acked_state_text},
-                                    f"acknowledged state: " : {acked_state_id},
-                                    f"condition class id: " : {condition_class_id},
-                                    f"Quality: " : {quality},
-                                    f"Retain: " : {retain},
-                                    f"identifier: " : {identifier}
-                                    }
+        print(opcua_alarm_message)
 
-            return opcua_alarm_message
-
-        except Exception as e:
-            logger_alarm.error(f"Error while processing event notification from {self.address} - Error: {e}")
+        return opcua_alarm_message
 
 
     async def user_notification(self, opcua_alarm_message, severity):

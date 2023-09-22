@@ -3,7 +3,7 @@ from asyncua import Client, ua
 from create_logger import setup_logger
 import asyncio
 
-CLIENT_TIMEOUT = 4
+CLIENT_TIMEOUT = 10
 
 logger = setup_logger('opcua_client')
 

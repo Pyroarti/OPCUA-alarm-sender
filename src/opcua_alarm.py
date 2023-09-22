@@ -3,7 +3,7 @@ import os
 import json
 from datetime import datetime
 
-from asyncua import ua
+from asyncua import Client, ua
 
 from create_logger import setup_logger
 from opcua_client import connect_opcua
@@ -21,34 +21,33 @@ opcua_config_file = os.path.join(config_dir, 'opcua_config.json')
 
 
 async def subscribe_to_server(adresses: str, username: str, password: str):
-    client = None
+    client:Client = None
+    subscription_active = False
+
     while True:
-
-
         try:
             if client is None:
                 client = await connect_opcua(adresses, username, password)
-            # Check if client is None before creating a subscription
-            if client is not None:
+
+            # Use check_connection to ensure the client is connected
+            await client.check_connection()
+
+            # If the connection check passes and subscription is not yet active
+            if not subscription_active:
                 handler = SubHandler(adresses)
                 sub = await client.create_subscription(1000, handler)
-                print(sub)
-                alarmConditionType = client.get_node("ns=3;i=1812")
-                print(alarmConditionType)
+                alarmConditionType = client.get_node("ns=0;i=2915")
                 server_node = client.get_node(ua.NodeId(Identifier=2253, NodeIdType=ua.NodeIdType.Numeric, NamespaceIndex=0))
-                print(server_node)
-                await sub.subscribe_alarms_and_conditions(server_node)
-                await asyncio.sleep(10)
-            else:
-                print("Connection to server failed. Retrying...")
-                logger_alarm.error(f"Connection to server {adresses} failed. Retrying...")
-                await asyncio.sleep(10)
+                await sub.subscribe_alarms_and_conditions(server_node, alarmConditionType)
+                subscription_active = True
+
         except Exception as e:
-            print(f"Error connecting or subscribing to server {adresses}: {e}")
             logger_alarm.error(f"Error connecting or subscribing to server {adresses}: {e}")
-            await client.disconnect()
             client = None
+            subscription_active = False
             await asyncio.sleep(10)
+
+
 
 class SubHandler:
     def __init__(self, address: str):
@@ -64,15 +63,14 @@ class SubHandler:
             severity = event.Severity
             enabled_state_id = None
             suppresed_or_shelved = event.SuppressedOrShelved
-            #acked_state_text = str(event.AckedState.Text)
-            #acked_state_id = None
-            #condition_class_id = str(event.ConditionClassId)
-            #identifier = str(event.NodeId.Identifier)
-            #quality = str(event.Quality)
-            #retain = event.Retain
+            acked_state_text = str(event.AckedState.Text)
+            acked_state_id = None
+            condition_class_id = str(event.ConditionClassId)
+            identifier = str(event.NodeId.Identifier)
+            quality = str(event.Quality)
+            retain = event.Retain
 
-            print(event)
-            return
+
 
             if hasattr(event, "ActiveState/Id"):
                 active_state_id = getattr(event, "ActiveState/Id")
