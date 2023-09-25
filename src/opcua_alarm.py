@@ -33,11 +33,13 @@ except ImportError:
 logger_programming = setup_logger('opcua_prog_alarm')
 logger_opcua_alarm = setup_logger("opcua_alarms")
 
-# Config files
+# Config files that does not contain sensitive data
 config_manager = ConfigHandler()
 phone_book = config_manager.phone_book
-#opcua_server_config = config_manager.opcua_server_config
 opcua_alarm_config = config_manager.opcua_server_alarm_config
+
+# Config files that contains sensitive data
+opcua_server_config_path = "opcua_server_config.json"
 
 # Environment variables
 OPCUA_SERVER_WINDOWS_ENV_KEY_NAME = "opcua_key"
@@ -83,24 +85,19 @@ async def subscribe_to_server(adresses: str, username: str, password: str):
             if not subscription_active:
                 handler = SubHandler(adresses)
                 sub = await client.create_subscription(1000, handler)
-                print("made a new sub")
                 alarmConditionType = client.get_node("ns=0;i=2915")
                 server_node = client.get_node(ua.NodeId(Identifier=2253,
                                                         NodeIdType=ua.NodeIdType.Numeric, NamespaceIndex=0))
                 subscription_active = True
 
             await sub.subscribe_alarms_and_conditions(server_node,alarmConditionType)
+
             while True:
                 await asyncio.sleep(1)
                 await client.check_connection()
+
         except (ConnectionError, ua.UaError):
-            logger_programming.warning("Reconnecting in 2 seconds")
-            await asyncio.sleep(2)
-
-
-        except ConnectionError:
-            client = None
-            subscription_active = False
+            logger_programming.warning("Reconnecting in 10 seconds")
             await asyncio.sleep(10)
 
         except Exception as e:
@@ -122,9 +119,8 @@ class SubHandler:
         """
         Called when a status change notification is received from the server.
         """
-        # Handle the status change event. This could be logging the change, raising an alert, etc.
-        print(f"Status change received from subscription with status: {status}")
 
+        logger_opcua_alarm(f"Status change received from subscription with status: {status}")
 
 
     async def event_notification(self, event):
@@ -154,16 +150,10 @@ class SubHandler:
         if hasattr(event, "NodeId") and hasattr(event.NodeId, "Identifier"):
             opcua_alarm_message["Identifier"] = str(event.NodeId.Identifier)
 
-
-
         if SEND_SMS:
             if opcua_alarm_message["ActiveState"] == "Active":
-                print(f"sending sms")
                 await self.user_notification(opcua_alarm_message["Message"], opcua_alarm_message['Severity'])
                 logger_opcua_alarm.info(f"New event received from {self.address}: {opcua_alarm_message}")
-        else:
-            pass
-            #logger_opcua_alarm.info(f"New event received from {self.address}: {opcua_alarm_message}")
 
 
     async def user_notification(self, opcua_alarm_message:str, severity:int):
@@ -200,12 +190,9 @@ async def monitor_alarms():
     """
     Reads the OPC UA server config file and starts a subscription to each server.
     """
-    config_name = "opcua_server_config.json" # Ändra så att det är bättre, config handler skickar tbx datat men vill kryptera
-                                             # kännslig data så kanske nån flagga som säger ifall datat inte är kännslitgt
-                                             # Så kan man returna sökvägen istället o låta data_encryptor sköta datat
 
     data_encrypt = DataEncryptor()
-    opcua_config = data_encrypt.encrypt_credentials(config_name, OPCUA_SERVER_WINDOWS_ENV_KEY_NAME)
+    opcua_config = data_encrypt.encrypt_credentials(opcua_server_config_path, OPCUA_SERVER_WINDOWS_ENV_KEY_NAME)
 
     if opcua_config is None:
         logger_programming.error("Could not read OPC UA config file")
