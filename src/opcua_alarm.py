@@ -36,7 +36,7 @@ logger_opcua_alarm = setup_logger("opcua_alarms")
 # Config files
 config_manager = ConfigHandler()
 phone_book = config_manager.phone_book
-opcua_server_config = config_manager.opcua_server_config
+#opcua_server_config = config_manager.opcua_server_config
 opcua_alarm_config = config_manager.opcua_server_alarm_config
 
 # Environment variables
@@ -83,12 +83,25 @@ async def subscribe_to_server(adresses: str, username: str, password: str):
             if not subscription_active:
                 handler = SubHandler(adresses)
                 sub = await client.create_subscription(1000, handler)
-                alarmConditionType = client.get_node(ALARM_CONDITION_TYPE)
-                server_node = client.get_node(ua.NodeId(Identifier=SERVER_NODE_IDENTIFIER,
-                                                        NodeIdType=ua.NodeIdType.Numeric, NamespaceIndex=SERVER_NODE_NAMESPACE_INDEX))
+                print("made a new sub")
+                alarmConditionType = client.get_node("ns=0;i=2915")
+                server_node = client.get_node(ua.NodeId(Identifier=2253,
+                                                        NodeIdType=ua.NodeIdType.Numeric, NamespaceIndex=0))
                 subscription_active = True
 
-            await sub.subscribe_alarms_and_conditions(server_node, alarmConditionType)
+            await sub.subscribe_alarms_and_conditions(server_node,alarmConditionType)
+            while True:
+                await asyncio.sleep(1)
+                await client.check_connection()
+        except (ConnectionError, ua.UaError):
+            logger_programming.warning("Reconnecting in 2 seconds")
+            await asyncio.sleep(2)
+
+
+        except ConnectionError:
+            client = None
+            subscription_active = False
+            await asyncio.sleep(10)
 
         except Exception as e:
             logger_programming.error(f"Error connecting or subscribing to server {adresses}: {e}")
@@ -104,6 +117,14 @@ class SubHandler:
 
     def __init__(self, address: str):
         self.address = address
+
+    def status_change_notification(self, status: ua.StatusChangeNotification):
+        """
+        Called when a status change notification is received from the server.
+        """
+        # Handle the status change event. This could be logging the change, raising an alert, etc.
+        print(f"Status change received from subscription with status: {status}")
+
 
 
     async def event_notification(self, event):
@@ -133,13 +154,19 @@ class SubHandler:
         if hasattr(event, "NodeId") and hasattr(event.NodeId, "Identifier"):
             opcua_alarm_message["Identifier"] = str(event.NodeId.Identifier)
 
+
+
         if SEND_SMS:
-            await self.user_notification(opcua_alarm_message["Message"], opcua_alarm_message['Severity'])
+            if opcua_alarm_message["ActiveState"] == "Active":
+                print(f"sending sms")
+                await self.user_notification(opcua_alarm_message["Message"], opcua_alarm_message['Severity'])
+                logger_opcua_alarm.info(f"New event received from {self.address}: {opcua_alarm_message}")
         else:
-            logger_opcua_alarm.info(f"New event received from {self.address}: {opcua_alarm_message}")
+            pass
+            #logger_opcua_alarm.info(f"New event received from {self.address}: {opcua_alarm_message}")
 
 
-    async def user_notification(self, opcua_alarm_message:str, severity:str):
+    async def user_notification(self, opcua_alarm_message:str, severity:int):
 
         current_time = datetime.now().time()
 
@@ -157,22 +184,28 @@ class SubHandler:
                         if start_time <= current_time <= end_time:
                             lowest_severity = setting.get('lowestSeverity')
                             highest_severity = setting.get('highestSeverity')
+                            lowest_severity = int(lowest_severity)
+                            highest_severity = int(highest_severity)
 
                             if lowest_severity <= severity <= highest_severity:
                                 phone_number = user.get('phone_number')
                                 name = user.get('Name')
                                 message = f"Medelande från pumpstation: {opcua_alarm_message}, allvarlighetsgrad: {severity}"
-                                send_sms(phone_number, message)
+                                #send_sms(phone_number, message)
                                 logger_opcua_alarm.info(f"Sent SMS to {name} at {phone_number}")
+                                print(f"Sent SMS to {name} at {phone_number}")
 
 
 async def monitor_alarms():
     """
     Reads the OPC UA server config file and starts a subscription to each server.
     """
+    config_name = "opcua_server_config.json" # Ändra så att det är bättre, config handler skickar tbx datat men vill kryptera
+                                             # kännslig data så kanske nån flagga som säger ifall datat inte är kännslitgt
+                                             # Så kan man returna sökvägen istället o låta data_encryptor sköta datat
 
     data_encrypt = DataEncryptor()
-    opcua_config = data_encrypt.encrypt_credentials(opcua_server_config, OPCUA_SERVER_WINDOWS_ENV_KEY_NAME)
+    opcua_config = data_encrypt.encrypt_credentials(config_name, OPCUA_SERVER_WINDOWS_ENV_KEY_NAME)
 
     if opcua_config is None:
         logger_programming.error("Could not read OPC UA config file")
