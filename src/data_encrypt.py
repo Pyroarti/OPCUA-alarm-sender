@@ -32,7 +32,7 @@ class DataEncryptor():
         self.output_path = Path(__file__).parent.parent
 
 
-    def encrypt_credentials(self, config_filename:str, env_key_name:str) -> dict:
+    def encrypt_credentials(self, config_filename:str, env_key_name:str):
         """
         Checks if the given configuration file is encrypted. If not
         it encrypts it using the key retrieved from the environment variables.

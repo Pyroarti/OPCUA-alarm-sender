@@ -74,6 +74,7 @@ async def subscribe_to_server(adresses: str, username: str, password: str):
     """
     client:Client = None
 
+
     while True:
         try:
             if client is None:
@@ -83,12 +84,12 @@ async def subscribe_to_server(adresses: str, username: str, password: str):
 
             handler = SubHandler(adresses)
             sub = await client.create_subscription(2000, handler)
+            print("made a new sub")
             alarmConditionType = client.get_node("ns=0;i=2915")
             server_node = client.get_node(ua.NodeId(Identifier=2253,
                                                     NodeIdType=ua.NodeIdType.Numeric, NamespaceIndex=0))
 
             await sub.subscribe_alarms_and_conditions(server_node,alarmConditionType)
-
             while True:
                 await asyncio.sleep(1)
                 await client.check_connection()
@@ -115,8 +116,9 @@ class SubHandler:
         """
         Called when a status change notification is received from the server.
         """
+        # Handle the status change event. This could be logging the change, raising an alert, etc.
+        print(f"Status change received from subscription with status: {status}")
 
-        logger_opcua_alarm(f"Status change received from subscription with status: {status}")
 
 
     async def event_notification(self, event):
@@ -146,10 +148,16 @@ class SubHandler:
         if hasattr(event, "NodeId") and hasattr(event.NodeId, "Identifier"):
             opcua_alarm_message["Identifier"] = str(event.NodeId.Identifier)
 
+
+
         if SEND_SMS:
             if opcua_alarm_message["ActiveState"] == "Active":
+                print(f"sending sms")
                 await self.user_notification(opcua_alarm_message["Message"], opcua_alarm_message['Severity'])
                 logger_opcua_alarm.info(f"New event received from {self.address}: {opcua_alarm_message}")
+        else:
+            pass
+            #logger_opcua_alarm.info(f"New event received from {self.address}: {opcua_alarm_message}")
 
 
     async def user_notification(self, opcua_alarm_message:str, severity:int):

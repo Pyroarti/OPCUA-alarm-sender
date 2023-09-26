@@ -1,4 +1,4 @@
-from data_encrypt import DataEncrypt
+from data_encrypt import DataEncryptor
 import os
 ####################################
 # Set to True to enable SMS sending or False to just log the messages

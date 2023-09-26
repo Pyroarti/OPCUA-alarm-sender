@@ -16,7 +16,7 @@ sms_config = config_manager.sms_config
 PORT:str = sms_config["port"]
 TIMEOUT:int = sms_config["timeout"]
 MAX_RETRIES:int = sms_config["max_retries"]
-BAUDRATE:int = sms_config["baus_rate"]
+BAUDRATE:int = sms_config["baudrate"]
 
 ####################################
 
