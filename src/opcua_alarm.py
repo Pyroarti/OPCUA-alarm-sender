@@ -73,7 +73,6 @@ async def subscribe_to_server(adresses: str, username: str, password: str):
     password - The password to use when connecting to the OPC UA server
     """
     client:Client = None
-    subscription_active = False
 
     while True:
         try:
@@ -82,13 +81,11 @@ async def subscribe_to_server(adresses: str, username: str, password: str):
 
             await client.check_connection()
 
-            if not subscription_active:
-                handler = SubHandler(adresses)
-                sub = await client.create_subscription(1000, handler)
-                alarmConditionType = client.get_node("ns=0;i=2915")
-                server_node = client.get_node(ua.NodeId(Identifier=2253,
-                                                        NodeIdType=ua.NodeIdType.Numeric, NamespaceIndex=0))
-                subscription_active = True
+            handler = SubHandler(adresses)
+            sub = await client.create_subscription(2000, handler)
+            alarmConditionType = client.get_node("ns=0;i=2915")
+            server_node = client.get_node(ua.NodeId(Identifier=2253,
+                                                    NodeIdType=ua.NodeIdType.Numeric, NamespaceIndex=0))
 
             await sub.subscribe_alarms_and_conditions(server_node,alarmConditionType)
 
@@ -96,14 +93,13 @@ async def subscribe_to_server(adresses: str, username: str, password: str):
                 await asyncio.sleep(1)
                 await client.check_connection()
 
-        except (ConnectionError, ua.UaError):
-            logger_programming.warning("Reconnecting in 10 seconds")
+        except (ConnectionError, ua.UaError) as e:
+            logger_programming.warning(f"{e} Reconnecting in 10 seconds")
             await asyncio.sleep(10)
 
         except Exception as e:
             logger_programming.error(f"Error connecting or subscribing to server {adresses}: {e}")
             client = None
-            subscription_active = False
             await asyncio.sleep(10)
 
 
@@ -181,7 +177,8 @@ class SubHandler:
                                 phone_number = user.get('phone_number')
                                 name = user.get('Name')
                                 message = f"Medelande från pumpstation: {opcua_alarm_message}, allvarlighetsgrad: {severity}"
-                                #send_sms(phone_number, message)
+                                send_sms(phone_number, message)
+                                asyncio.sleep(3)
                                 logger_opcua_alarm.info(f"Sent SMS to {name} at {phone_number}")
                                 print(f"Sent SMS to {name} at {phone_number}")
 
