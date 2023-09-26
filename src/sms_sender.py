@@ -20,6 +20,7 @@ BAUDRATE:int = sms_config["baudrate"]
 
 ####################################
 
+
 def send_at(ser:serial, command:str, response:str, timeout:int, max_retries:int):
     """
     Send AT command to GSM modem and check for response.
@@ -73,7 +74,8 @@ def send_sms(phone_number: str, message: str):
             send_at(ser=ser, command='AT+CSCS="UCS2"', response='OK', timeout=TIMEOUT, max_retries=MAX_RETRIES)
 
             phone_number_hex = phone_number.encode('utf-16-be').hex().upper()
-            send_at(ser, f'AT+CMGS="{phone_number_hex}"', '>')
+
+            send_at(ser=ser, command=f'AT+CMGS="{phone_number_hex}"', response='>', timeout=TIMEOUT, max_retries=MAX_RETRIES)
 
             message_hex = message.encode('utf-16-be').hex().upper()  # Convert the message to UCS-2 hex string
             ser.write((message_hex + chr(26)).encode())  # chr(26) is the ASCII code for CTRL+Z

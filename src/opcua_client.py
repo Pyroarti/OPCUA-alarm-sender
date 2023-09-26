@@ -1,8 +1,6 @@
 from asyncua import Client, ua
 
 from create_logger import setup_logger
-import asyncio
-
 
 ##############################
 CLIENT_TIMEOUT = 10

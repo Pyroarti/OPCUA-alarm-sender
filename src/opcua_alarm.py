@@ -33,34 +33,19 @@ except ImportError:
 logger_programming = setup_logger('opcua_prog_alarm')
 logger_opcua_alarm = setup_logger("opcua_alarms")
 
-# Config files that does not contain sensitive data
+# Config files
 config_manager = ConfigHandler()
 phone_book = config_manager.phone_book
 opcua_alarm_config = config_manager.opcua_server_alarm_config
 
-# Config files that contains sensitive data
-opcua_server_config_path = "opcua_server_config.json"
-
-# Environment variables
-OPCUA_SERVER_WINDOWS_ENV_KEY_NAME = "opcua_key"
-
 # Config data
-SEND_SMS:bool = opcua_alarm_config["send_sms"]
-ALARM_CONDITION_TYPE:str = opcua_alarm_config["alarm_condition_type"]
-SERVER_NODE_IDENTIFIER:int = opcua_alarm_config["server_node_identifier"]
-SERVER_NODE_NAMESPACE_INDEX:int = opcua_alarm_config["server_node_namespace_index"]
-
-# Från engelska square eagle per donut till svenska
-DAY_TRANSLATION = {
-            'Monday': 'Måndag',
-            'Tuesday': 'Tisdag',
-            'Wednesday': 'Onsdag',
-            'Thursday': 'Torsdag',
-            'Friday': 'Fredag',
-            'Saturday': 'Lördag',
-            'Sunday': 'Söndag'
-            }
-
+SEND_SMS:bool = opcua_alarm_config["config"]["send_sms"]
+ALARM_CONDITION_TYPE:str = opcua_alarm_config["config"]["alarm_condition_type"]
+SERVER_NODE_IDENTIFIER:int = opcua_alarm_config["config"]["server_node_identifier"]
+SERVER_NODE_NAMESPACE_INDEX:int = opcua_alarm_config["config"]["server_node_namespace_index"]
+DAY_TRANSLATION:dict = opcua_alarm_config["day_translation"]
+OPCUA_SERVER_CRED_PATH:str = opcua_alarm_config["opcua_server_cred_path"]
+OPCUA_SERVER_WINDOWS_ENV_KEY_NAME:str = opcua_alarm_config["environment_variables"]["opcua"]
 ####################################
 
 
@@ -72,8 +57,16 @@ async def subscribe_to_server(adresses: str, username: str, password: str):
     username - The username to use when connecting to the OPC UA server
     password - The password to use when connecting to the OPC UA server
     """
-    client:Client = None
 
+    subscribing_params = ua.CreateSubscriptionParameters()
+    subscribing_params.RequestedPublishingInterval = 2000
+    subscribing_params.RequestedLifetimeCount = 6000
+    subscribing_params.RequestedMaxKeepAliveCount = 20
+    subscribing_params.MaxNotificationsPerPublish = 100
+    subscribing_params.PublishingEnabled = True
+    subscribing_params.Priority = 0
+
+    client:Client = None
 
     while True:
         try:
@@ -83,25 +76,32 @@ async def subscribe_to_server(adresses: str, username: str, password: str):
             await client.check_connection()
 
             handler = SubHandler(adresses)
-            sub = await client.create_subscription(2000, handler)
-            print("made a new sub")
+            sub = await client.create_subscription(subscribing_params, handler)
+            logger_programming("Made a new subscription")
             alarmConditionType = client.get_node("ns=0;i=2915")
             server_node = client.get_node(ua.NodeId(Identifier=2253,
                                                     NodeIdType=ua.NodeIdType.Numeric, NamespaceIndex=0))
 
             await sub.subscribe_alarms_and_conditions(server_node,alarmConditionType)
             while True:
-                await asyncio.sleep(1)
+                await asyncio.sleep(0.1)
                 await client.check_connection()
 
         except (ConnectionError, ua.UaError) as e:
             logger_programming.warning(f"{e} Reconnecting in 10 seconds")
-            await asyncio.sleep(10)
+            if client is not None:
+                client.delete_subscriptions(sub)
+                await client.disconnect()
+                client = None
+            await asyncio.sleep(1)
 
         except Exception as e:
             logger_programming.error(f"Error connecting or subscribing to server {adresses}: {e}")
+            if client is not None:
+                client.delete_subscriptions(sub)
+                await client.disconnect()
             client = None
-            await asyncio.sleep(10)
+            await asyncio.sleep(1)
 
 
 class SubHandler:
@@ -118,6 +118,7 @@ class SubHandler:
         """
         # Handle the status change event. This could be logging the change, raising an alert, etc.
         print(f"Status change received from subscription with status: {status}")
+        logger_opcua_alarm.info(status)
 
 
 
@@ -155,9 +156,12 @@ class SubHandler:
                 print(f"sending sms")
                 await self.user_notification(opcua_alarm_message["Message"], opcua_alarm_message['Severity'])
                 logger_opcua_alarm.info(f"New event received from {self.address}: {opcua_alarm_message}")
+
         else:
-            pass
-            #logger_opcua_alarm.info(f"New event received from {self.address}: {opcua_alarm_message}")
+            if opcua_alarm_message["ActiveState"] == "Active":
+                logger_opcua_alarm.info(f"New event received from {self.address}: {opcua_alarm_message}")
+                print(opcua_alarm_message["Message"], opcua_alarm_message['Severity'])
+
 
 
     async def user_notification(self, opcua_alarm_message:str, severity:int):
@@ -185,8 +189,9 @@ class SubHandler:
                                 phone_number = user.get('phone_number')
                                 name = user.get('Name')
                                 message = f"Medelande från pumpstation: {opcua_alarm_message}, allvarlighetsgrad: {severity}"
+                                print("Trying to send sms")
                                 send_sms(phone_number, message)
-                                asyncio.sleep(3)
+                                await asyncio.sleep(3)
                                 logger_opcua_alarm.info(f"Sent SMS to {name} at {phone_number}")
                                 print(f"Sent SMS to {name} at {phone_number}")
 
@@ -197,7 +202,7 @@ async def monitor_alarms():
     """
 
     data_encrypt = DataEncryptor()
-    opcua_config = data_encrypt.encrypt_credentials(opcua_server_config_path, OPCUA_SERVER_WINDOWS_ENV_KEY_NAME)
+    opcua_config = data_encrypt.encrypt_credentials(OPCUA_SERVER_CRED_PATH, OPCUA_SERVER_WINDOWS_ENV_KEY_NAME)
 
     if opcua_config is None:
         logger_programming.error("Could not read OPC UA config file")
