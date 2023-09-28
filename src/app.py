@@ -204,7 +204,7 @@ def test_sms(id):
     user = data[id]
     phone_number = user['phone_number']
 
-    send_sms(phone_number, 'Test SMS från Elmo pumpstation.')
+    send_sms(phone_number, 'Test SMS från Elmo pannrum.')
     flash('Test SMS skickat.')
 
     return redirect(url_for('index'))

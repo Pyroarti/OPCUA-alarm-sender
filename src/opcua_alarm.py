@@ -46,6 +46,7 @@ SERVER_NODE_NAMESPACE_INDEX:int = opcua_alarm_config["config"]["server_node_name
 DAY_TRANSLATION:dict = opcua_alarm_config["day_translation"]
 OPCUA_SERVER_CRED_PATH:str = opcua_alarm_config["opcua_server_cred_path"]
 OPCUA_SERVER_WINDOWS_ENV_KEY_NAME:str = opcua_alarm_config["environment_variables"]["opcua"]
+SMS_MESSAGE:str = opcua_alarm_config["config"]["messege"]
 ####################################
 
 
@@ -153,7 +154,6 @@ class SubHandler:
 
         if SEND_SMS:
             if opcua_alarm_message["ActiveState"] == "Active":
-                print(f"sending sms")
                 await self.user_notification(opcua_alarm_message["Message"], opcua_alarm_message['Severity'])
                 logger_opcua_alarm.info(f"New event received from {self.address}: {opcua_alarm_message}")
 
@@ -188,7 +188,7 @@ class SubHandler:
                             if lowest_severity <= severity <= highest_severity:
                                 phone_number = user.get('phone_number')
                                 name = user.get('Name')
-                                message = f"Medelande från pumpstation: {opcua_alarm_message}, allvarlighetsgrad: {severity}"
+                                message = f"{SMS_MESSAGE} {opcua_alarm_message}, allvarlighetsgrad: {severity}"
                                 print("Trying to send sms")
                                 send_sms(phone_number, message)
                                 await asyncio.sleep(3)
