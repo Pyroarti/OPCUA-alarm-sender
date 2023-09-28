@@ -78,7 +78,7 @@ async def subscribe_to_server(adresses: str, username: str, password: str):
 
             handler = SubHandler(adresses)
             sub = await client.create_subscription(subscribing_params, handler)
-            logger_programming("Made a new subscription")
+            logger_programming.info("Made a new subscription")
             alarmConditionType = client.get_node("ns=0;i=2915")
             server_node = client.get_node(ua.NodeId(Identifier=2253,
                                                     NodeIdType=ua.NodeIdType.Numeric, NamespaceIndex=0))
@@ -91,18 +91,18 @@ async def subscribe_to_server(adresses: str, username: str, password: str):
         except (ConnectionError, ua.UaError) as e:
             logger_programming.warning(f"{e} Reconnecting in 10 seconds")
             if client is not None:
-                client.delete_subscriptions(sub)
+                await client.delete_subscriptions(sub)
                 await client.disconnect()
                 client = None
-            await asyncio.sleep(1)
+            await asyncio.sleep(3)
 
         except Exception as e:
             logger_programming.error(f"Error connecting or subscribing to server {adresses}: {e}")
             if client is not None:
-                client.delete_subscriptions(sub)
+                await client.delete_subscriptions(sub)
                 await client.disconnect()
             client = None
-            await asyncio.sleep(1)
+            await asyncio.sleep(3)
 
 
 class SubHandler:
