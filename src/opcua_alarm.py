@@ -94,7 +94,7 @@ async def subscribe_to_server(adresses: str, username: str, password: str):
                 await client.delete_subscriptions(sub)
                 await client.disconnect()
                 client = None
-            await asyncio.sleep(3)
+            await asyncio.sleep(10)
 
         except Exception as e:
             logger_programming.error(f"Error connecting or subscribing to server {adresses}: {e}")
@@ -102,7 +102,7 @@ async def subscribe_to_server(adresses: str, username: str, password: str):
                 await client.delete_subscriptions(sub)
                 await client.disconnect()
             client = None
-            await asyncio.sleep(3)
+            await asyncio.sleep(10)
 
 
 class SubHandler:
@@ -189,7 +189,7 @@ class SubHandler:
                                 phone_number = user.get('phone_number')
                                 name = user.get('Name')
                                 message = f"{SMS_MESSAGE} {opcua_alarm_message}, allvarlighetsgrad: {severity}"
-                                print("Trying to send sms")
+                                print("Trying to send a sms")
                                 send_sms(phone_number, message)
                                 await asyncio.sleep(3)
                                 logger_opcua_alarm.info(f"Sent SMS to {name} at {phone_number}")

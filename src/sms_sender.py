@@ -50,7 +50,7 @@ def send_at(ser:serial, command:str, response:str, timeout:int, max_retries:int)
             logger.error(f"Error executing {command}: {e}")
 
         retries += 1
-        time.sleep(2)
+        time.sleep(5)
 
     logger.error(f"Max retries reached for command {command}. Giving up.")
 
