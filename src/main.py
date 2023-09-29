@@ -13,7 +13,7 @@ def start_asyncio_loop():
     try:
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
-        #loop.run_until_complete(monitor_alarms())
+        loop.run_until_complete(monitor_alarms())
     except Exception as e:
         logger.error(f"Error in asyncio loop: {e}")
         raise e
@@ -29,5 +29,3 @@ if __name__ == '__main__':
     except Exception as e:
         logger.error(f"Error in Flask app: {e}")
         raise e
-
-    asyncio_thread.join()

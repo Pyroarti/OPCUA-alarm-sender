@@ -89,12 +89,12 @@ async def subscribe_to_server(adresses: str, username: str, password: str):
                 await client.check_connection()
 
         except (ConnectionError, ua.UaError) as e:
-            logger_programming.warning(f"{e} Reconnecting in 10 seconds")
+            logger_programming.warning(f"{e} Reconnecting in 30 seconds")
             if client is not None:
                 await client.delete_subscriptions(sub)
                 await client.disconnect()
                 client = None
-            await asyncio.sleep(10)
+            await asyncio.sleep(30)
 
         except Exception as e:
             logger_programming.error(f"Error connecting or subscribing to server {adresses}: {e}")
@@ -102,7 +102,7 @@ async def subscribe_to_server(adresses: str, username: str, password: str):
                 await client.delete_subscriptions(sub)
                 await client.disconnect()
             client = None
-            await asyncio.sleep(10)
+            await asyncio.sleep(30)
 
 
 class SubHandler:
