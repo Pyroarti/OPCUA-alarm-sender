@@ -215,4 +215,4 @@ def main():
         host = data['ip_adress']
         port = data['port']
 
-    app.run(host=host, port=port, debug=True)
+    app.run(host=host, port=port, debug=False)

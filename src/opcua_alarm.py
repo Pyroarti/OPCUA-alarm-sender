@@ -13,6 +13,7 @@ import asyncio
 from datetime import datetime
 
 from asyncua import ua, Client
+import logging
 
 try:
     from create_logger import setup_logger
@@ -59,50 +60,61 @@ async def subscribe_to_server(adresses: str, username: str, password: str):
     password - The password to use when connecting to the OPC UA server
     """
 
-    subscribing_params = ua.CreateSubscriptionParameters()
-    subscribing_params.RequestedPublishingInterval = 2000
-    subscribing_params.RequestedLifetimeCount = 6000
-    subscribing_params.RequestedMaxKeepAliveCount = 20
-    subscribing_params.MaxNotificationsPerPublish = 100
-    subscribing_params.PublishingEnabled = True
-    subscribing_params.Priority = 0
-
-    client:Client = None
-
     while True:
+        client:Client = None
+        sub = None
         try:
             if client is None:
                 client = await connect_opcua(adresses, username, password)
 
-            await client.check_connection()
-
-            handler = SubHandler(adresses)
-            sub = await client.create_subscription(subscribing_params, handler)
-            logger_programming.info("Made a new subscription")
-            alarmConditionType = client.get_node("ns=0;i=2915")
-            server_node = client.get_node(ua.NodeId(Identifier=2253,
-                                                    NodeIdType=ua.NodeIdType.Numeric, NamespaceIndex=0))
-
-            await sub.subscribe_alarms_and_conditions(server_node,alarmConditionType)
-            while True:
-                await asyncio.sleep(0.1)
+            async with client as client:
                 await client.check_connection()
+
+                conditionType = client.get_node("ns=0;i=2782")
+                alarmConditionType = client.get_node("ns=0;i=2915")
+
+                msclt = SubHandler(adresses)
+                sub = await client.create_subscription(0, msclt)
+                handle = await sub.subscribe_alarms_and_conditions(client.nodes.server, alarmConditionType)
+                await conditionType.call_method("0:ConditionRefresh", ua.Variant(sub.subscription_id, ua.VariantType.UInt32))
+
+                logger_programming.info("Made a new subscription")
+
+                while True:
+                    try:
+                        await asyncio.sleep(0.1)
+                        await client.check_connection()
+
+                    except (ConnectionError, ua.UaError) as e:
+                        logger_programming.warning(f"{e} Reconnecting in 30 seconds")
+                        if client is not None:
+                            await client.delete_subscriptions(sub)
+                            await client.disconnect()
+                            client = None
+                        await asyncio.sleep(30)
 
         except (ConnectionError, ua.UaError) as e:
             logger_programming.warning(f"{e} Reconnecting in 30 seconds")
-            if client is not None:
-                await client.delete_subscriptions(sub)
-                await client.disconnect()
+            if client is not None and sub is not None:
+                try:
+                    await client.delete_subscriptions(sub)
+                    await client.disconnect()
+                except:
+                    pass
                 client = None
             await asyncio.sleep(30)
 
         except Exception as e:
             logger_programming.error(f"Error connecting or subscribing to server {adresses}: {e}")
-            if client is not None:
-                await client.delete_subscriptions(sub)
-                await client.disconnect()
+            if client is not None and sub is not None:
+                try:
+                    await client.delete_subscriptions(sub)
+                    await client.disconnect()
+                except:
+                    pass
             client = None
             await asyncio.sleep(30)
+
 
 
 class SubHandler:
