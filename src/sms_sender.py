@@ -79,7 +79,6 @@ def send_sms(phone_number: str, message: str):
 
             message_hex = message.encode('utf-16-be').hex().upper()  # Convert the message to UCS-2 hex string
             ser.write((message_hex + chr(26)).encode())  # chr(26) is the ASCII code for CTRL+Z
-            time.sleep(3)
 
             response = ser.read(ser.in_waiting).decode("utf-8")
             logger.info(response)

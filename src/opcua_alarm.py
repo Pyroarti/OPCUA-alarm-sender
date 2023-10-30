@@ -20,6 +20,8 @@ try:
     from opcua_client import connect_opcua
     from data_encrypt import DataEncryptor
     from config_handler import ConfigHandler
+    import asyncio
+    from concurrent.futures import ThreadPoolExecutor
 except ImportError:
     print(f"Some modules was not found in. Please make sure it is in the same directory as this script.")
 
@@ -50,6 +52,7 @@ OPCUA_SERVER_WINDOWS_ENV_KEY_NAME:str = opcua_alarm_config["environment_variable
 SMS_MESSAGE:str = opcua_alarm_config["config"]["messege"]
 ####################################
 
+executor = ThreadPoolExecutor(max_workers=1)
 
 async def subscribe_to_server(adresses: str, username: str, password: str):
     """
@@ -61,8 +64,8 @@ async def subscribe_to_server(adresses: str, username: str, password: str):
     """
     subscribing_params = ua.CreateSubscriptionParameters()
     subscribing_params.RequestedPublishingInterval = 1000
-    subscribing_params.RequestedLifetimeCount = 300
-    subscribing_params.RequestedMaxKeepAliveCount = 22
+    subscribing_params.RequestedLifetimeCount = 600
+    subscribing_params.RequestedMaxKeepAliveCount = 200
     subscribing_params.MaxNotificationsPerPublish = 100
     subscribing_params.PublishingEnabled = True
     subscribing_params.Priority = 0
@@ -188,9 +191,8 @@ class SubHandler:
 
 
     async def user_notification(self, opcua_alarm_message:str, severity:int):
-
+        tasks = []
         current_time = datetime.now().time()
-
         current_day = DAY_TRANSLATION[datetime.now().strftime('%A')]
 
         for user in phone_book:
@@ -212,11 +214,17 @@ class SubHandler:
                                 phone_number = user.get('phone_number')
                                 name = user.get('Name')
                                 message = f"{SMS_MESSAGE} {opcua_alarm_message}, allvarlighetsgrad: {severity}"
-                                print("Trying to send a sms")
-                                send_sms(phone_number, message)
-                                await asyncio.sleep(3)
-                                logger_opcua_alarm.info(f"Sent SMS to {name} at {phone_number}")
-                                print(f"Sent SMS to {name} at {phone_number}")
+
+                                task = asyncio.get_event_loop().run_in_executor(executor, send_sms, phone_number, message)
+                                tasks.append(task)
+
+        await asyncio.gather(*tasks)
+        logger_opcua_alarm.info(f"Sent SMS to all users.")
+
+
+async def async_send_sms(phone_number: str, message: str):
+    loop = asyncio.get_running_loop()
+    await loop.run_in_executor(executor, send_sms, phone_number, message)
 
 
 async def monitor_alarms():
