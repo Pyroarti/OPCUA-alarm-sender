@@ -20,7 +20,7 @@ async def connect_opcua(url: str, username: str, password: str):
     :return: Client object if connected, None otherwise
     """
 
-    client = Client(url=url, timeout=CLIENT_TIMEOUT)
+    client = Client(url=url, timeout=CLIENT_TIMEOUT, watchdog_intervall=10.0)
 
     try:
         logger.info(f"Connecting to OPC UA server at {url}")
