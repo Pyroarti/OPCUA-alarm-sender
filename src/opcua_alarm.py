@@ -14,7 +14,6 @@ from datetime import datetime
 
 from asyncua import ua, Client
 import logging
-import concurrent.futures
 
 try:
     from create_logger import setup_logger
@@ -60,59 +59,69 @@ async def subscribe_to_server(adresses: str, username: str, password: str):
     username - The username to use when connecting to the OPC UA server
     password - The password to use when connecting to the OPC UA server
     """
-
-    retry_delay = 5  # Initial retry delay
-    max_retry_delay = 60  # Maximum retry delay
-    client = None
-    sub = None
+    subscribing_params = ua.CreateSubscriptionParameters()
+    subscribing_params.RequestedPublishingInterval = 1000
+    subscribing_params.RequestedLifetimeCount = 300
+    subscribing_params.RequestedMaxKeepAliveCount = 22
+    subscribing_params.MaxNotificationsPerPublish = 100
+    subscribing_params.PublishingEnabled = True
+    subscribing_params.Priority = 0
 
     while True:
+        client:Client = None
+        sub = None
         try:
-            if not client:
+            if client is None:
                 client = await connect_opcua(adresses, username, password)
 
-            async with client as client_instance:
-                await client_instance.check_connection()
-                conditionType = await client_instance.get_node("ns=0;i=2782")
-                alarmConditionType = await client_instance.get_node("ns=0;i=2915")
+            async with client as client:
+                await client.check_connection()
+
+                conditionType = client.get_node("ns=0;i=2782")
+                alarmConditionType = client.get_node("ns=0;i=2915")
 
                 msclt = SubHandler(adresses)
-                sub = await client_instance.create_subscription(0, msclt)
-                handle = await sub.subscribe_alarms_and_conditions(client_instance.nodes.server, alarmConditionType)
-                await conditionType.call_method("0:ConditionRefresh", ua.Variant(sub.subscription_id, ua.VariantType.UInt32))
+                sub = await client.create_subscription(0, msclt)
+                handle = await sub.subscribe_alarms_and_conditions(client.nodes.server, alarmConditionType)
+                #await conditionType.call_method("0:ConditionRefresh", ua.Variant(sub.subscription_id, ua.VariantType.UInt32))
 
                 logger_programming.info("Made a new subscription")
-                retry_delay = 5  # Reset the retry delay upon successful connection
 
                 while True:
-                    await asyncio.sleep(0.1)
-                    await client_instance.check_connection()
+                    try:
+                        await asyncio.sleep(0.1)
+                        await client.check_connection()
+
+                    except (ConnectionError, ua.UaError) as e:
+                        logger_programming.warning(f"{e} Reconnecting in 30 seconds")
+                        if client is not None:
+                            await client.delete_subscriptions(sub)
+                            await client.disconnect()
+                            client = None
+                        await asyncio.sleep(30)
 
         except (ConnectionError, ua.UaError) as e:
-            logger_programming.warning(f"{e} Reconnecting in {retry_delay} seconds")
-            if client and sub:
-                await client.delete_subscriptions(sub)
-                await client.disconnect()
+            logger_programming.warning(f"{e} Reconnecting in 30 seconds")
+            if client is not None and sub is not None:
+                try:
+                    await client.delete_subscriptions(sub)
+                    await client.disconnect()
+                except:
+                    pass
                 client = None
-            if client:
-                await client.disconnect()
-                client = None
-
-            await asyncio.sleep(retry_delay)
-            retry_delay = min(max_retry_delay, retry_delay * 2)  # Increment the delay, but cap it
+            await asyncio.sleep(30)
 
         except Exception as e:
             logger_programming.error(f"Error connecting or subscribing to server {adresses}: {e}")
-            if client and sub:
-                await client.delete_subscriptions(sub)
-                await client.disconnect()
-                client = None
-            if client:
-                await client.disconnect()
-                client = None
+            if client is not None and sub is not None:
+                try:
+                    await client.delete_subscriptions(sub)
+                    await client.disconnect()
+                except:
+                    pass
+            client = None
+            await asyncio.sleep(30)
 
-            await asyncio.sleep(retry_delay)
-            retry_delay = min(max_retry_delay, retry_delay * 2)  # Increment the delay, but cap it
 
 
 class SubHandler:
@@ -170,6 +179,7 @@ class SubHandler:
         else:
             if opcua_alarm_message["ActiveState"] == "Active":
                 logger_opcua_alarm.info(f"New event received from {self.address}: {opcua_alarm_message}")
+                print(opcua_alarm_message["Message"], opcua_alarm_message['Severity'])
 
 
 
@@ -199,9 +209,8 @@ class SubHandler:
                                 name = user.get('Name')
                                 message = f"{SMS_MESSAGE} {opcua_alarm_message}, allvarlighetsgrad: {severity}"
                                 print("Trying to send a sms")
-                                loop = asyncio.get_running_loop()
-                                with concurrent.futures.ThreadPoolExecutor() as pool:
-                                    result = await loop.run_in_executor(pool, send_sms, phone_number, message)
+                                send_sms(phone_number, message)
+                                await asyncio.sleep(3)
                                 logger_opcua_alarm.info(f"Sent SMS to {name} at {phone_number}")
                                 print(f"Sent SMS to {name} at {phone_number}")
 
