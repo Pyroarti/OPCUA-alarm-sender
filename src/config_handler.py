@@ -38,7 +38,7 @@ class ConfigHandler:
 
         config_path = self.config_path / config_name
         try:
-            with open(config_path, "r") as config_file:
+            with open(config_path, "r", encoding="UTF-8") as config_file:
                 config_data = json.load(config_file)
         except FileNotFoundError:
             raise (f"Config file {config_path} not found.")

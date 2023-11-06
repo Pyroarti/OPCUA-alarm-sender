@@ -14,6 +14,8 @@ from datetime import datetime
 
 from asyncua import ua, Client
 import logging
+from queue import Queue
+from threading import Thread
 
 try:
     from create_logger import setup_logger
@@ -52,7 +54,20 @@ OPCUA_SERVER_WINDOWS_ENV_KEY_NAME:str = opcua_alarm_config["environment_variable
 SMS_MESSAGE:str = opcua_alarm_config["config"]["messege"]
 ####################################
 
+
+
 executor = ThreadPoolExecutor(max_workers=1)
+
+sms_queue = Queue()
+
+def sms_worker():
+    while True:
+        phone_number, message = sms_queue.get()
+        send_sms(phone_number, message)  # Your blocking SMS function.
+        sms_queue.task_done()
+
+# Start the SMS worker thread.
+Thread(target=sms_worker, daemon=True).start()
 
 async def subscribe_to_server(adresses: str, username: str, password: str):
     """
@@ -64,9 +79,9 @@ async def subscribe_to_server(adresses: str, username: str, password: str):
     """
     subscribing_params = ua.CreateSubscriptionParameters()
     subscribing_params.RequestedPublishingInterval = 1000
-    subscribing_params.RequestedLifetimeCount = 600
-    subscribing_params.RequestedMaxKeepAliveCount = 200
-    subscribing_params.MaxNotificationsPerPublish = 100
+    subscribing_params.RequestedLifetimeCount = 400
+    subscribing_params.RequestedMaxKeepAliveCount = 100
+    subscribing_params.MaxNotificationsPerPublish = 0
     subscribing_params.PublishingEnabled = True
     subscribing_params.Priority = 0
 
@@ -88,7 +103,7 @@ async def subscribe_to_server(adresses: str, username: str, password: str):
                                                     NodeIdType=ua.NodeIdType.Numeric, NamespaceIndex=0))
 
                 msclt = SubHandler(adresses)
-                sub = await client.create_subscription(0, msclt)
+                sub = await client.create_subscription(subscribing_params, msclt)
                 handle = await sub.subscribe_alarms_and_conditions(server_node, alarmConditionType)
                 await conditionType.call_method("0:ConditionRefresh", ua.Variant(sub.subscription_id, ua.VariantType.UInt32))
 
@@ -98,6 +113,12 @@ async def subscribe_to_server(adresses: str, username: str, password: str):
                     try:
                         await asyncio.sleep(1)
                         await client.check_connection()
+
+                        if not client.uaclient._publish_task or client.uaclient._publish_task.done():
+                            logger_programming('Detected dead publish task, rebuilding...')
+                            sub = await client.create_subscription(subscribing_params, msclt)
+                            handle = await sub.subscribe_alarms_and_conditions(server_node, alarmConditionType)
+                            logger_programming("Subscription rebuilt successfully.")
 
                     except (ConnectionError, ua.UaError) as e:
                         logger_programming.warning(f"{e} Reconnecting in 30 seconds")
@@ -144,7 +165,6 @@ class SubHandler:
         Called when a status change notification is received from the server.
         """
         # Handle the status change event. This could be logging the change, raising an alert, etc.
-        print(f"Status change received from subscription with status: {status}")
         logger_opcua_alarm.info(status)
 
 
@@ -155,6 +175,7 @@ class SubHandler:
         and saves it to a log file.
         returns: the event message
         """
+        logger_opcua_alarm.info(event)
 
         opcua_alarm_message = {
             "New event received from": self.address
@@ -186,21 +207,20 @@ class SubHandler:
         else:
             if opcua_alarm_message["ActiveState"] == "Active":
                 logger_opcua_alarm.info(f"New event received from {self.address}: {opcua_alarm_message}")
-                print(opcua_alarm_message["Message"], opcua_alarm_message['Severity'])
-
 
 
     async def user_notification(self, opcua_alarm_message:str, severity:int):
         tasks = []
         current_time = datetime.now().time()
-        current_day = DAY_TRANSLATION[datetime.now().strftime('%A')]
+        current_day = datetime.now().strftime('%A')
+        translated_day = DAY_TRANSLATION[current_day]
 
         for user in phone_book:
             if user.get('Active') == 'Yes':
                 time_settings = user.get('timeSettings', [])
 
                 for setting in time_settings:
-                    if current_day in setting.get('days', []):
+                    if translated_day in setting.get('days', []):
                         start_time = datetime.strptime(setting.get('startTime', '00:00'), '%H:%M').time()
                         end_time = datetime.strptime(setting.get('endTime', '00:00'), '%H:%M').time()
 
@@ -215,16 +235,13 @@ class SubHandler:
                                 name = user.get('Name')
                                 message = f"{SMS_MESSAGE} {opcua_alarm_message}, allvarlighetsgrad: {severity}"
 
-                                task = asyncio.get_event_loop().run_in_executor(executor, send_sms, phone_number, message)
-                                tasks.append(task)
+                                sms_queue.put((phone_number, message))
 
-        await asyncio.gather(*tasks)
+                                #task = asyncio.get_event_loop().run_in_executor(executor, send_sms, phone_number, message)
+                                #tasks.append(task)
+
+        #await asyncio.gather(*tasks)
         logger_opcua_alarm.info(f"Sent SMS to all users.")
-
-
-async def async_send_sms(phone_number: str, message: str):
-    loop = asyncio.get_running_loop()
-    await loop.run_in_executor(executor, send_sms, phone_number, message)
 
 
 async def monitor_alarms():
