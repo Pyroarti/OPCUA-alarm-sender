@@ -1,8 +1,6 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <link rel="stylesheet" href="{{ url_for('static', filename='nouislider.min.css') }}">
-    <script src="{{ url_for('static', filename='nouislider.min.js') }}"></script>
     <style>
 
         body {
@@ -22,11 +20,12 @@
         label {
             display: inline-block;
             width: 100px;
-            margin-bottom: 10px;
+
         }
 
+
         input[type="text"] {
-            width: 100%;
+            width: 300px;
             padding: 10px;
             margin-bottom: 20px;
             border: 1px solid #ccc;
@@ -34,14 +33,26 @@
             box-sizing: border-box;
         }
 
+        input[type="filter_text"] {
+            width: 500px;
+            height: 30px;
+            padding: 10px;
+            margin-bottom: 20px;
+            margin-left: 10px;
+            font-size: large;
+        }
+
+
         input[type="submit"] {
-            width: 35%;
-            height: 50px;
-            margin-bottom: 10px;
+            width: 200px;
+            height: 100px;
+            font-size: 25px;
+            margin-top: 10px;
+            margin-left: 20px;
         }
 
         input[type="number"] {
-            width: 35%;
+            width: 200px;
             height: 30px;
             margin-bottom: 10px;
             margin-left: 100px;
@@ -57,7 +68,6 @@
             background-color: red;
             color: white;
         }
-
 
         .time-input {
             font-size: 150%;
@@ -75,91 +85,265 @@
 
         }
 
-        .button {
+        .button_back {
             background-color: #009afa;
             color: white;
-            width: 10%;
-            height: 80px;
+            width: 200px;
+            height: 100px;
             font-size: 25px;
+            margin-top: 20px;
+        }
+        .button_add_setting {
+            background-color: #009afa;
+            color: white;
+            width: 200px;
+            height: 100px;
+            font-size: 25px;
+            margin-top: 10px;
+        }
+
+        .button_save_user {
+            background-color: #009afa;
+            color: white;
+            width: 200px;
+            height: 100px;
+            font-size: 25px;
+            margin-top: 10px;
+        }
+
+        .remove-time-setting {
+            background-color: #ff4d4d;
+            color: white;
+            width: 15%;
+            height: 50px;
+            padding: 5px 10px;
+            margin-top: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .helper-text {
+            display: block;
+            margin-bottom: 5px;
+            margin-top: 30px;
+            color: #6c757d;
+            font-size: 1.0em;
         }
 
     </style>
 </head>
 <body>
-
     <div class="container">
-        <h1>Create User</h1>
+        <h1>Skapa användare</h1>
 
-        <form method="post" action="create_user" id="severity-form">
+        <form method="post" action="create_user" id="create-user-form" onsubmit="return validateForm()">
             <label for="name">Namn:</label>
             <input type="text" id="name" name="name" required><br>
 
             <label for="phone_number">Telefon Nummer:</label>
             <input type="text" id="phone_number" name="phone_number" required><br>
 
+            <div id="time-settings-container">
+                <!-- The first time setting fieldset -->
+                <fieldset class="time-setting">
+                    <legend>Filtrering 1</legend>
+                    <div class="helper-text">Dagar i veckan då larmet ska skickas</div>
+                    <label>Dagar:</label>
+                    <input type="checkbox" class="checkbox" name="days1[]" value="Måndag"> Måndag
+                    <input type="checkbox" class="checkbox" name="days1[]" value="Tisdag"> Tisdag
+                    <input type="checkbox" class="checkbox" name="days1[]" value="Onsdag"> Onsdag
+                    <input type="checkbox" class="checkbox" name="days1[]" value="Torsdag"> Torsdag
+                    <input type="checkbox" class="checkbox" name="days1[]" value="Fredag"> Fredag
+                    <input type="checkbox" class="checkbox" name="days1[]" value="Lördag"> Lördag
+                    <input type="checkbox" class="checkbox" name="days1[]" value="Söndag"> Söndag<br>
 
-            <fieldset>
-                <legend>Tidsinställningar 1</legend>
-                <label>Dagar:</label>
-                <input type="checkbox" class="checkbox" name="days1" value="Måndag"> Måndag
-                <input type="checkbox" class="checkbox" name="days1" value="Tisdag"> Tisdag
-                <input type="checkbox" class="checkbox" name="days1" value="Onsdag"> Onsdag
-                <input type="checkbox" class="checkbox" name="days1" value="Torsdag"> Torsdag
-                <input type="checkbox" class="checkbox" name="days1" value="Fredag"> Fredag
-                <input type="checkbox" class="checkbox" name="days1" value="Lördag"> Lördag
-                <input type="checkbox" class="checkbox" name="days1" value="Söndag"> Söndag
+                    <input type="hidden" id="hiddenStartTime1" name="startTime1">
+                    <input type="hidden" id="hiddenEndTime1" name="endTime1">
 
-                <br>
+                    <div class="helper-text">Tid på dygnet larmet ska skickas</div>
+                    <label for="wholeDay1">Hela dagen:</label>
+                    <input type="checkbox" class="checkbox" id="wholeDay1" name="wholeDay1" value="Hela dagen" onchange="toggleTimeInputs(this, 1)"><br>
+                    <label for="startTime1">Start tid:</label>
+                    <input type="time" class="time-input" id="startTime1" name="startTime1" required><br>
 
-                <label for="startTime1">Start tid:</label>
-                <input type="time" class = "time-input" id="startTime1" name="startTime1" required><br>
+                    <label for="endTime1">Slut tid:</label>
+                    <input type="time" class="time-input" id="endTime1" name="endTime1" required><br>
 
-                <label for="endTime1">Slut tid:</label>
-                <input type="time" class = "time-input" id="endTime1" name="endTime1" required><br>
+                    <div class="helper-text">Allvarlighetsgraden på larmen (0-1000)</div>
+                    <label for="lowestSeverity1">Lägsta allvarlighetsgrad:</label>
+                    <input type="number" id="lowestSeverity1" name="lowestSeverity1" required><br>
 
-                <label for="lowestSeverity1">Lägsta allvarlighetsgrad:</label>
-                <input type="number" id="lowestSeverity1" name="lowestSeverity1" required><br>
+                    <label for="highestSeverity1">Högsta allvarlighetsgrad:</label>
+                    <input type="number" id="highestSeverity1" name="highestSeverity1" required><br>
 
-                <label for="highestSeverity1">Högsta allvarlighetsgrad:</label>
-                <input type="number" id="highestSeverity1" name="highestSeverity1" required><br>
-              </fieldset>
+                    <div class="helper-text">Ange nyckelord vad för sorts larm som ska skickas separerade med punkt (ex: hög.låglåg.tryck.temp) lämna tom för att inte filtrera</div>
+                    <label for="WordFilter1">Nyckelord filtrering:</label>
 
-              <fieldset>
-                <legend>Tidsinställningar 2</legend>
-                <label>Dagar:</label>
-                <input type="checkbox" class="checkbox" name="days2" value="Måndag"> Måndag
-                <input type="checkbox" class="checkbox" name="days2" value="Tisdag"> Tisdag
-                <input type="checkbox" class="checkbox" name="days2" value="Onsdag"> Onsdag
-                <input type="checkbox" class="checkbox" name="days2" value="Torsdag"> Torsdag
-                <input type="checkbox" class="checkbox" name="days2" value="Fredag"> Fredag
-                <input type="checkbox" class="checkbox" name="days2" value="Lördag"> Lördag
-                <input type="checkbox" class="checkbox" name="days2" value="Söndag"> Söndag
-                <br>
+                    <input type="filter_text" id="WordFilter1" name="WordFilter1"><br>
 
-                <label for="startTime2">Start Tid:</label>
-                <input type="time" class = "time-input" id="startTime2" name="startTime2" ><br>
+                </fieldset>
+            </div>
 
-                <label for="endTime2">Slut tid:</label>
-                <input type="time" class = "time-input" id="endTime2" name="endTime2" ><br>
-
-                <label for="lowestSeverity2">Lägsta allvarlighetsgrad:</label>
-                <input type="number" id="lowestSeverity2" name="lowestSeverity2" ><br>
-
-                <label for="highestSeverity2">Högsta allvarlighetsgrad:</label>
-                <input type="number" id="highestSeverity2" name="highestSeverity2" ><br>
-
-                <input type="submit" value="Spara Mottagare"><br>
-
-                <button type="button" id="back" class="button" onclick="goBack()">Gå tillbaka</button>
-
-                <script>
-                function goBack() {
-                    location.replace("{{ url_for('index') }}");
-                }
-                </script>
-
-              </fieldset>
+            <button type="button" id="add-time-setting" class="button_add_setting" onclick="addTimeSetting()">Lägg till filtrering</button>
+            <input type="submit" class="button_save_user" value="Spara Mottagare"><br>
+            <button type="button" id="back" class="button_back" onclick="goBack()">Gå tillbaka</button>
         </form>
 
+        <script>
+            function addTimeSetting() {
+                var container = document.getElementById('time-settings-container');
+                var settingsCount = container.getElementsByClassName('time-setting').length;
+                var newSetting = container.children[0].cloneNode(true);
+
+                // Update the legend to indicate the number for the new time setting
+                newSetting.getElementsByTagName('legend')[0].textContent = 'Filtrering ' + (settingsCount + 1);
+
+                var dayCheckboxes = newSetting.querySelectorAll('[name^="days1[]"]');
+                dayCheckboxes.forEach(function(checkbox, index) {
+                    checkbox.name = 'days' + (settingsCount + 1) + '[]';
+                    checkbox.checked = false; // Uncheck all checkboxes for the new setting
+                });
+
+                // Update the IDs and names of the new setting's elements
+                newSetting.id = 'timeSetting' + (settingsCount + 1);
+                var wholeDayCheckbox = newSetting.querySelector('[id^="wholeDay"]');
+                var startTimeInput = newSetting.querySelector('[id^="startTime"]');
+                var endTimeInput = newSetting.querySelector('[id^="endTime"]');
+
+                wholeDayCheckbox.id = 'wholeDay' + (settingsCount + 1);
+                wholeDayCheckbox.name = 'wholeDay' + (settingsCount + 1);
+                wholeDayCheckbox.onchange = function() { toggleTimeInputs(this, (settingsCount + 1)); };
+
+                startTimeInput.id = 'startTime' + (settingsCount + 1);
+                startTimeInput.name = 'startTime' + (settingsCount + 1);
+
+                endTimeInput.id = 'endTime' + (settingsCount + 1);
+                endTimeInput.name = 'endTime' + (settingsCount + 1);
+
+                var lowestSeverityInput = newSetting.querySelector('[id^="lowestSeverity"]');
+                var highestSeverityInput = newSetting.querySelector('[id^="highestSeverity"]');
+
+                lowestSeverityInput.id = 'lowestSeverity' + (settingsCount + 1);
+                lowestSeverityInput.name = 'lowestSeverity' + (settingsCount + 1);
+
+                highestSeverityInput.id = 'highestSeverity' + (settingsCount + 1);
+                highestSeverityInput.name = 'highestSeverity' + (settingsCount + 1);
+
+                var WordFilter1 = newSetting.querySelector('[id^="WordFilter"]');
+                WordFilter1.id = 'WordFilter' + (settingsCount + 1);
+                WordFilter1.name = 'WordFilter' + (settingsCount + 1);
+
+                var days = newSetting.querySelectorAll('[name^="days"]');
+                for (var i = 0; i < days.length; i++) {
+                    days[i].checked = false;
+                }
+
+                startTimeInput.disabled = false;
+                endTimeInput.disabled = false;
+                startTimeInput.value = '';
+                endTimeInput.value = '';
+                wholeDayCheckbox.checked = false;
+                lowestSeverityInput.value = '';
+                highestSeverityInput.value = '';
+
+
+                wholeDayCheckbox.onchange = function() { toggleTimeInputs(this, (settingsCount + 1)); };
+
+
+                toggleTimeInputs(wholeDayCheckbox, settingsCount + 1);
+
+                // Append the new setting to the container
+                container.appendChild(newSetting);
+
+                // Add a remove button to the new setting
+                var removeButton = document.createElement('button');
+                removeButton.type = 'button';
+                removeButton.textContent = 'Ta bort filtrering';
+                removeButton.className = 'remove-time-setting';
+                removeButton.onclick = function() {
+                    container.removeChild(newSetting);
+                };
+                newSetting.appendChild(removeButton);
+            }
+
+
+            function goBack() {
+                location.replace("{{ url_for('index') }}");
+            }
+
+            function toggleTimeInputs(checkbox, settingNumber) {
+                var startTimeInput = document.getElementById('startTime' + settingNumber);
+                var endTimeInput = document.getElementById('endTime' + settingNumber);
+                var hiddenStartTimeInput = document.getElementById('hiddenStartTime' + settingNumber);
+                var hiddenEndTimeInput = document.getElementById('hiddenEndTime' + settingNumber);
+
+                if (checkbox.checked) {
+                    if (startTimeInput && endTimeInput) {
+                        startTimeInput.value = '00:00';
+                        endTimeInput.value = '23:59';
+                    }
+                    if (hiddenStartTimeInput && hiddenEndTimeInput) {
+                        hiddenStartTimeInput.value = '00:00';
+                        hiddenEndTimeInput.value = '23:59';
+                    }
+                } else {
+                    if (startTimeInput && endTimeInput) {
+                        startTimeInput.value = '';
+                        endTimeInput.value = '';
+                    }
+                    if (hiddenStartTimeInput && hiddenEndTimeInput) {
+                        hiddenStartTimeInput.value = '';
+                        hiddenEndTimeInput.value = '';
+                    }
+                }
+            }
+
+
+            function validateForm() {
+                var timeSettingsContainer = document.getElementById('time-settings-container');
+                var timeSettings = timeSettingsContainer.getElementsByClassName('time-setting');
+
+                for (var i = 0; i < timeSettings.length; i++) {
+                    var timeSetting = timeSettings[i];
+                    var settingNumber = i + 1; // since your settings start with 1, not 0
+
+                    var lowestSeverityInput = document.getElementById('lowestSeverity' + settingNumber);
+                    var highestSeverityInput = document.getElementById('highestSeverity' + settingNumber);
+
+                    // Validate the severity range
+                    if (lowestSeverityInput.value < 0 || lowestSeverityInput.value > 1000) {
+                        alert('Lägsta allvarlighetsgrad måste vara mellan 0 och 1000.');
+                        return false;
+                    }
+
+                    if (highestSeverityInput.value < 0 || highestSeverityInput.value > 1000) {
+                        alert('Högsta allvarlighetsgrad måste vara mellan 0 och 1000.');
+                        return false;
+                    }
+
+                    // Validate that the lowest severity is less than the highest severity
+                    if (parseInt(lowestSeverityInput.value) >= parseInt(highestSeverityInput.value)) {
+                        alert('Lägsta allvarlighetsgrad måste vara lägre än högsta allvarlighetsgrad.');
+                        return false;
+                    }
+
+                    // Check that at least one day checkbox is checked
+                    var dayCheckboxes = timeSetting.querySelectorAll('[name^="days' + settingNumber + '[]"]');
+                    var oneDayChecked = Array.from(dayCheckboxes).some(checkbox => checkbox.checked);
+                    if (!oneDayChecked) {
+                        alert('Välj minst en dag för Filtrering ' + settingNumber);
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+
+
+
+        </script>
+
+    </div>
 </body>
 </html>

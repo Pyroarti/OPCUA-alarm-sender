@@ -39,7 +39,7 @@ def login():
             session['username'] = username
             return redirect(url_for('index'))
         else:
-            flash('Fel inloggnings information!')
+            pass
     return render_template("login.html")
 
 
@@ -66,26 +66,33 @@ def index():
 def create_user():
     if not session.get('logged_in'):
         return redirect(url_for('login'))
+
     if request.method == 'POST':
         name = request.form['name']
         phone_number = request.form['phone_number']
 
-        time_settings = [
-            {
-                "days": request.form.getlist('days1'),
-                "startTime": request.form['startTime1'],
-                "endTime": request.form['endTime1'],
-                "lowestSeverity": request.form['lowestSeverity1'],
-                "highestSeverity": request.form['highestSeverity1']
-            },
-            {
-                "days": request.form.getlist('days2'),
-                "startTime": request.form['startTime2'],
-                "endTime": request.form['endTime2'],
-                "lowestSeverity": request.form['lowestSeverity2'],
-                "highestSeverity": request.form['highestSeverity2']
-            }
-            ]
+        time_settings = []
+
+        index = 1
+        while True:
+            day_field = f'days{index}[]'
+            start_time_field = f'startTime{index}'
+            end_time_field = f'endTime{index}'
+            lowest_severity_field = f'lowestSeverity{index}'
+            highest_severity_field = f'highestSeverity{index}'
+
+            if start_time_field in request.form:
+                time_setting = {
+                    "days": request.form.getlist(day_field),
+                    "startTime": request.form[start_time_field],
+                    "endTime": request.form[end_time_field],
+                    "lowestSeverity": request.form[lowest_severity_field],
+                    "highestSeverity": request.form[highest_severity_field]
+                }
+                time_settings.append(time_setting)
+                index += 1
+            else:
+                break
 
         if not name or not phone_number or not time_settings:
             flash('Fyll i alla fält.')
@@ -113,7 +120,7 @@ def create_user():
         flash('Mottagare tillagd.')
         return redirect(url_for('index'))
 
-    with open(phone_book_file, 'r', encoding='utf8') as f:
+    with open(phone_book_file, 'r', encoding='UTF-8') as f:
         users = json.load(f)
 
     return render_template('create_user.html', users=users)
@@ -146,31 +153,22 @@ def edit_user(id):
             return redirect(url_for('index'))
 
         if request.method == 'POST':
-            time_settings = [
-            {
-                "days": request.form.getlist('days1'),
-                "startTime": request.form['startTime1'],
-                "endTime": request.form['endTime1'],
-                "lowestSeverity": request.form['lowestSeverity1'],
-                "highestSeverity": request.form['highestSeverity1']
-            },
-            {
-                "days": request.form.getlist('days2'),
-                "startTime": request.form['startTime2'],
-                "endTime": request.form['endTime2'],
-                "lowestSeverity": request.form['lowestSeverity2'],
-                "highestSeverity": request.form['highestSeverity2']
-            }
-            ]
-            new_name = request.form['name']
-            new_phone_number = request.form['phone_number']
-            new_active = 'Yes' if 'active' in request.form else 'No'
-            new_time_settings = time_settings
-
-
-            user_to_edit['Name'] = new_name
-            user_to_edit['phone_number'] = new_phone_number
-            user_to_edit['Active'] = new_active
+            new_time_settings = []
+            index = 1
+            while True:
+                days_key = f'days{index}'
+                if days_key in request.form:
+                    time_setting = {
+                        "days": request.form.getlist(days_key),
+                        "startTime": request.form[f'startTime{index}'],
+                        "endTime": request.form[f'endTime{index}'],
+                        "lowestSeverity": request.form[f'lowestSeverity{index}'],
+                        "highestSeverity": request.form[f'highestSeverity{index}']
+                    }
+                    new_time_settings.append(time_setting)
+                    index += 1
+                else:
+                    break
             user_to_edit['timeSettings'] = new_time_settings
 
 

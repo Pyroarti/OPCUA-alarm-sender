@@ -63,11 +63,13 @@ sms_queue = Queue()
 def sms_worker():
     while True:
         phone_number, message = sms_queue.get()
-        send_sms(phone_number, message)  # Your blocking SMS function.
+        send_sms(phone_number, message)
         sms_queue.task_done()
+
 
 # Start the SMS worker thread.
 Thread(target=sms_worker, daemon=True).start()
+
 
 async def subscribe_to_server(adresses: str, username: str, password: str):
     """
@@ -87,6 +89,8 @@ async def subscribe_to_server(adresses: str, username: str, password: str):
 
     client:Client = None
     sub = None
+
+    await asyncio.sleep(1000)
 
     while True:
 
@@ -197,8 +201,6 @@ class SubHandler:
         if hasattr(event, "NodeId") and hasattr(event.NodeId, "Identifier"):
             opcua_alarm_message["Identifier"] = str(event.NodeId.Identifier)
 
-
-
         if SEND_SMS:
             if opcua_alarm_message["ActiveState"] == "Active":
                 await self.user_notification(opcua_alarm_message["Message"], opcua_alarm_message['Severity'])
@@ -237,10 +239,6 @@ class SubHandler:
 
                                 sms_queue.put((phone_number, message))
 
-                                #task = asyncio.get_event_loop().run_in_executor(executor, send_sms, phone_number, message)
-                                #tasks.append(task)
-
-        #await asyncio.gather(*tasks)
         logger_opcua_alarm.info(f"Sent SMS to all users.")
 
 

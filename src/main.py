@@ -8,7 +8,7 @@ from create_logger import setup_logger
 logger = setup_logger(__name__)
 
 
-def start_asyncio_loop():
+def start_main_async_loop():
 
     try:
         loop = asyncio.new_event_loop()
@@ -21,7 +21,7 @@ def start_asyncio_loop():
 
 if __name__ == '__main__':
 
-    asyncio_thread = Thread(target=start_asyncio_loop)
+    asyncio_thread = Thread(target=start_main_async_loop)
     asyncio_thread.start()
 
     try:
