@@ -89,9 +89,7 @@ async def subscribe_to_server(adresses: str, username: str, password: str):
 
     client:Client = None
     sub = None
-
-    await asyncio.sleep(1000)
-
+    await asyncio.sleep(10000)
     while True:
 
         try:
@@ -153,7 +151,6 @@ async def subscribe_to_server(adresses: str, username: str, password: str):
                     pass
             client = None
             await asyncio.sleep(30)
-
 
 
 class SubHandler:

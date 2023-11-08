@@ -48,6 +48,7 @@ def logout():
     session['logged_in'] = False
     return redirect(url_for('index'))
 
+
 @app.route("/")
 def index():
     """
@@ -80,6 +81,7 @@ def create_user():
             end_time_field = f'endTime{index}'
             lowest_severity_field = f'lowestSeverity{index}'
             highest_severity_field = f'highestSeverity{index}'
+            word_filter_field = f'WordFilter{index}'
 
             if start_time_field in request.form:
                 time_setting = {
@@ -87,7 +89,8 @@ def create_user():
                     "startTime": request.form[start_time_field],
                     "endTime": request.form[end_time_field],
                     "lowestSeverity": request.form[lowest_severity_field],
-                    "highestSeverity": request.form[highest_severity_field]
+                    "highestSeverity": request.form[highest_severity_field],
+                    "wordFilter": request.form[word_filter_field]
                 }
                 time_settings.append(time_setting)
                 index += 1
@@ -98,7 +101,7 @@ def create_user():
             flash('Fyll i alla fält.')
             return redirect(url_for('create_user'))
 
-        with open(phone_book_file, 'r+', encoding='utf8') as f:
+        with open(phone_book_file, 'r+', encoding='UTF-8') as f:
             data = json.load(f)
             for user in data:
                 if user['phone_number'] == phone_number:
@@ -111,7 +114,6 @@ def create_user():
             'Active': 'Yes',
             'timeSettings': time_settings
             })
-
 
             f.seek(0)
             json.dump(data, f, indent=4)
