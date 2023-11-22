@@ -4,28 +4,32 @@ import asyncio
 from app import main as start_web_server
 from opcua_alarm import monitor_alarms
 from create_logger import setup_logger
+from watchdog import main_watchdog
 
 logger = setup_logger(__name__)
 
 
-def start_main_async_loop():
-
+async def set_up_tasks():
     try:
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        loop.run_until_complete(monitor_alarms())
+        monitor_task = asyncio.create_task(monitor_alarms())
+        watchdog_task = asyncio.create_task(main_watchdog("e", "e", "e"))
+        await asyncio.gather(monitor_task, watchdog_task)
     except Exception as e:
-        logger.error(f"Error in asyncio loop: {e}")
-        raise e
+        logger.error(f"Error in main AsyncIO loop: {e}")
+        raise
 
-
-if __name__ == '__main__':
-
-    asyncio_thread = Thread(target=start_main_async_loop)
-    asyncio_thread.start()
-
+def run_web_server():
     try:
         start_web_server()
     except Exception as e:
         logger.error(f"Error in Flask app: {e}")
         raise e
+
+
+if __name__ == '__main__':
+
+    web_server_thread = Thread(target=run_web_server)
+    web_server_thread.start()
+
+    asyncio.run(set_up_tasks())
+

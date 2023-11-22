@@ -156,7 +156,7 @@ def edit_user(id):
             new_time_settings = []
             index = 1
             while True:
-                days_key = f'days{index}'
+                days_key = f'days{index}[]'
                 if days_key in request.form:
                     time_setting = {
                         "days": request.form.getlist(days_key),
@@ -179,7 +179,7 @@ def edit_user(id):
             flash('Mottagaren har uppdaterats.')
             return redirect(url_for('index'))
 
-        return render_template('edit_user.html', user=user_to_edit, id=id)
+        return render_template('edit_user.html', user=user_to_edit, user_id=id)
 
 
 @app.route("/test_sms/<int:id>", methods=["GET"])
