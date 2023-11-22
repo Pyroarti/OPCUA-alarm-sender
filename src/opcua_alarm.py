@@ -89,7 +89,6 @@ async def subscribe_to_server(adresses: str, username: str, password: str):
 
     client:Client = None
     sub = None
-    await asyncio.sleep(10000)
     while True:
 
         try:
@@ -216,9 +215,10 @@ class SubHandler:
 
         for user in phone_book:
             if user.get('Active') == 'Yes':
-                time_settings = user.get('timeSettings', [])
+                word_filter_list = []
+                user_settings = user.get('timeSettings', [])
 
-                for setting in time_settings:
+                for setting in user_settings:
                     if translated_day in setting.get('days', []):
                         start_time = datetime.strptime(setting.get('startTime', '00:00'), '%H:%M').time()
                         end_time = datetime.strptime(setting.get('endTime', '00:00'), '%H:%M').time()
@@ -234,9 +234,19 @@ class SubHandler:
                                 name = user.get('Name')
                                 message = f"{SMS_MESSAGE} {opcua_alarm_message}, allvarlighetsgrad: {severity}"
 
-                                sms_queue.put((phone_number, message))
+                                word_filter = setting.get('wordFilter', ())
+                                if word_filter:
+                                    word_filter_lower = word_filter.lower()
+                                    word_filter_list.append(word_filter_lower.split('.'))
 
-        logger_opcua_alarm.info(f"Sent SMS to all users.")
+                                    if any(word in opcua_alarm_message.lower() for word in word_filter):
+                                        sms_queue.put((phone_number, message))
+
+                                        logger_opcua_alarm.info(f"Sent SMS to {name}")
+                                else:
+                                    sms_queue.put((phone_number, message))
+
+                                    logger_opcua_alarm.info(f"Sent SMS to {name}")
 
 
 async def monitor_alarms():

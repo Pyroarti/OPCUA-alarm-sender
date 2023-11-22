@@ -115,9 +115,8 @@ def create_user():
             'timeSettings': time_settings
             })
 
-            f.seek(0)
-            json.dump(data, f, indent=4)
-            f.truncate()
+            with open(phone_book_file, 'w', encoding='utf-8') as f:
+                json.dump(data, f, indent=4, ensure_ascii=False)
 
         flash('Mottagare tillagd.')
         return redirect(url_for('index'))
@@ -147,9 +146,8 @@ def edit_user(id):
         if action == 'delete':
             del data[id]
 
-            f.seek(0)
-            json.dump(data, f, indent=4)
-            f.truncate()
+            with open(phone_book_file, 'w', encoding='utf-8') as f:
+                json.dump(data, f, indent=4, ensure_ascii=False)
 
             flash('Mottagare raderad.')
             return redirect(url_for('index'))
@@ -174,9 +172,9 @@ def edit_user(id):
             user_to_edit['timeSettings'] = new_time_settings
 
 
-            f.seek(0)
-            json.dump(data, f, indent=4)
-            f.truncate()
+            with open(phone_book_file, 'w', encoding='utf-8') as f:
+                json.dump(data, f, indent=4, ensure_ascii=False)
+
 
             flash('Mottagaren har uppdaterats.')
             return redirect(url_for('index'))
