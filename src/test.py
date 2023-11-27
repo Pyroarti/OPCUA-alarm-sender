@@ -5,7 +5,7 @@ from opcua_alarm import SubHandler
 
 class TestUserNotification(unittest.TestCase):
 
-    def setUp(self):
+    def setup(self):
         self.subhandler_instance = SubHandler("1.1.1.1:1111")
 
     @patch('opcua_alarm.sms_queue.put')

@@ -12,7 +12,7 @@ logger = setup_logger(__name__)
 async def set_up_tasks():
     try:
         monitor_task = asyncio.create_task(monitor_alarms())
-        watchdog_task = asyncio.create_task(main_watchdog("e", "e", "e"))
+        watchdog_task = asyncio.create_task(main_watchdog("temp", "temp", "temp"))
         await asyncio.gather(monitor_task, watchdog_task)
     except Exception as e:
         logger.error(f"Error in main AsyncIO loop: {e}")

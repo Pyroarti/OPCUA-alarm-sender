@@ -171,13 +171,16 @@
                     <input type="time" class="time-input" id="endTime1" name="endTime1" required><br>
 
                     <div class="helper-text">Allvarlighetsgraden på larmen (0-1000)</div>
-                    <label for="lowestSeverity1">Lägsta allvarlighetsgrad:</label>
+                    <label for="lowestSeverity1">Högsta allvarlighetsgrad:</label>
                     <input type="number" id="lowestSeverity1" name="lowestSeverity1" required><br>
 
-                    <label for="highestSeverity1">Högsta allvarlighetsgrad:</label>
+                    <label for="highestSeverity1">Lägsta allvarlighetsgrad:</label>
                     <input type="number" id="highestSeverity1" name="highestSeverity1" required><br>
 
-                    <div class="helper-text">Ange nyckelord vad för sorts larm som ska skickas separerade med punkt (ex: hög.låglåg.tryck.temp) lämna tom för att inte filtrera</div>
+                    <div class="helper-text">Ange nyckelord vad för sorts larm som ska skickas separerade med punkt ex: hög.låglåg.tryck.temp </div>
+                    <div class="helper-text">För att ta med hela meningar ex: "Um01 motor hög temp" </div>
+                    <div class="helper-text">För att filtrera bort ex: -låg.-tryck </div>
+                    <div class="helper-text">Lämna tom för att få alla larmen </div>
                     <label for="WordFilter1">Nyckelord filtrering:</label>
 
                     <input type="filter_text" id="WordFilter1" name="WordFilter1"><br>
@@ -313,17 +316,17 @@
 
                     // Validate the severity range
                     if (lowestSeverityInput.value < 0 || lowestSeverityInput.value > 1000) {
-                        alert('Lägsta allvarlighetsgrad måste vara mellan 0 och 1000.');
-                        return false;
-                    }
-
-                    if (highestSeverityInput.value < 0 || highestSeverityInput.value > 1000) {
                         alert('Högsta allvarlighetsgrad måste vara mellan 0 och 1000.');
                         return false;
                     }
 
+                    if (highestSeverityInput.value < 0 || highestSeverityInput.value > 1000) {
+                        alert('Lägsta allvarlighetsgrad måste vara mellan 0 och 1000.');
+                        return false;
+                    }
+
                     // Validate that the lowest severity is less than the highest severity
-                    if (parseInt(lowestSeverityInput.value) >= parseInt(highestSeverityInput.value)) {
+                    if (parseInt(lowestSeverityInput.value) <= parseInt(highestSeverityInput.value)) {
                         alert('Lägsta allvarlighetsgrad måste vara lägre än högsta allvarlighetsgrad.');
                         return false;
                     }

@@ -65,8 +65,12 @@
         }
 
         .delete-button {
-            background-color: red;
+            background-color: #fa0000;
             color: white;
+            width: 230px;
+            height: 100px;
+            font-size: 25px;
+            margin-top: 10px;
         }
 
         .time-input {
@@ -130,6 +134,50 @@
             color: #6c757d;
             font-size: 1.0em;
         }
+        /* Popup Style */
+        .popup {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 40%;
+            top: 40%;
+            transform: translate(-40%, -40%);
+            border: 1px solid #888;
+            padding: 5px;
+            background-color: white;
+        }
+
+        /* The Close Button */
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 40px;
+            font-weight: bold;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .popup-content {
+            margin: 5px;
+            padding: 10px;
+        }
+
+        button.help-button {
+            font-size: 16px;
+            padding: 10px 20px;
+            background-color: #009afa;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 20px;
+        }
+
 
     </style>
 </head>
@@ -147,18 +195,25 @@
             <!-- Time Settings -->
             <div id="time-settings-container">
                 {% for setting in user.timeSettings %}
-                <fieldset class="time-setting">
+                <fieldset class="time-setting" id="timeSetting{{ loop.index }}">
                     <legend>Filtrering {{ loop.index }}</legend>
-                    <!-- Day Checkboxes -->
                     <div class="helper-text">Dagar i veckan då larmet ska skickas</div>
-                    {% for day in ['Måndag', 'Tisdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lördag', 'Söndag'] %}
-                    <label>{{ day }}:</label>
-                    <input type="checkbox" class="checkbox" name="days{{ loop.index }}[]" value="{{ day }}" {% if day in setting.days %} checked {% endif %}>
-                    {% endfor %}
+                    <input type="checkbox" class="checkbox" name="days{{ loop.index }}[]" value="Måndag" {{ 'checked' if 'Måndag' in setting.days else '' }}> Måndag
+                    <input type="checkbox" class="checkbox" name="days{{ loop.index }}[]" value="Tisdag" {{ 'checked' if 'Tisdag' in setting.days else '' }}> Tisdag
+                    <input type="checkbox" class="checkbox" name="days{{ loop.index }}[]" value="Onsdag" {{ 'checked' if 'Onsdag' in setting.days else '' }}> Onsdag
+                    <input type="checkbox" class="checkbox" name="days{{ loop.index }}[]" value="Torsdag" {{ 'checked' if 'Torsdag' in setting.days else '' }}> Torsdag
+                    <input type="checkbox" class="checkbox" name="days{{ loop.index }}[]" value="Fredag" {{ 'checked' if 'Fredag' in setting.days else '' }}> Fredag
+                    <input type="checkbox" class="checkbox" name="days{{ loop.index }}[]" value="Lördag" {{ 'checked' if 'Lördag' in setting.days else '' }}> Lördag
+                    <input type="checkbox" class="checkbox" name="days{{ loop.index }}[]" value="Söndag" {{ 'checked' if 'Söndag' in setting.days else '' }}> Söndag<br>
+
+
 
                     <!-- Whole Day Checkbox and Hidden Inputs -->
+                    <div class="helper-text">Tid på dygnet larmet ska skickas</div>
                     <label for="wholeDay{{ loop.index }}">Hela dagen:</label>
-                    <input type="checkbox" class="checkbox" id="wholeDay{{ loop.index }}" name="wholeDay{{ loop.index }}" onchange="toggleTimeInputs(this, 1)" {% if setting.wholeDay %} checked {% endif %}><br>
+
+                    <input type="checkbox" class="checkbox" id="wholeDay{{ loop.index }}" name="wholeDay{{ loop.index }}" onchange="toggleTimeInputs(this, {{ loop.index }})" {% if setting.wholeDay %} checked {% endif %}><br>
+
                     <input type="hidden" id="hiddenStartTime{{ loop.index }}" name="hiddenStartTime{{ loop.index }}" value="{{ setting.startTime }}">
                     <input type="hidden" id="hiddenEndTime{{ loop.index }}" name="hiddenEndTime{{ loop.index }}" value="{{ setting.endTime }}">
 
@@ -169,22 +224,39 @@
                     <input type="time" class="time-input" id="endTime{{ loop.index }}" name="endTime{{ loop.index }}" value="{{ setting.endTime }}" required><br>
 
                     <!-- Severity Inputs -->
-                    <label for="lowestSeverity{{ loop.index }}">Lägsta allvarlighetsgrad:</label>
+                    <div class="helper-text">Allvarlighetsgraden på larmen (0-1000)</div>
+                    <label for="lowestSeverity{{ loop.index }}">Högsta allvarlighetsgrad:</label>
                     <input type="number" id="lowestSeverity{{ loop.index }}" name="lowestSeverity{{ loop.index }}" value="{{ setting.lowestSeverity }}" required><br>
-                    <label for="highestSeverity{{ loop.index }}">Högsta allvarlighetsgrad:</label>
+                    <label for="highestSeverity{{ loop.index }}">Lägsta allvarlighetsgrad:</label>
                     <input type="number" id="highestSeverity{{ loop.index }}" name="highestSeverity{{ loop.index }}" value="{{ setting.highestSeverity }}" required><br>
 
                     <!-- Keyword Filter Input -->
-                    <div class="helper-text">Nyckelord filtrering:</div>
-                    <label for="WordFilter{{ loop.index }}">Nyckelord:</label>
+                    <button type="button" class="help-button" onclick="openPopup()">?</button><br>
+
+
+
+
+                    <label for="WordFilter">Nyckelord filtrering:</label>
                     <input type="filter_text" id="WordFilter{{ loop.index }}" name="WordFilter{{ loop.index }}" value="{{ setting.wordFilter }}"><br>
                 </fieldset>
                 {% endfor %}
             </div>
 
+            <div id="myPopup" class="popup">
+                <div class="popup-content">
+                    <span class="close" onclick="closePopup()">&times;</span>
+                    <p>Ange nyckelord vad för sorts larm som ska skickas separerade med punkt ex: hög.låglåg.tryck.temp</p>
+                    <p>För att ta med hela meningar ex: "Um01 motor hög temp"</p>
+                    <p>För att filtrera bort ex: -låg.-tryck</p>
+                    <p>Lämna tom för att få alla larmen</p>
+                </div>
+            </div>
+
             <button type="button" id="add-time-setting" class="button_add_setting" onclick="addTimeSetting()">Lägg till filtrering</button>
             <input type="submit" class="button_save_user" value="Spara Ändringar"><br>
             <button type="button" id="back" class="button_back" onclick="goBack()">Gå tillbaka</button>
+            <a href="{{ url_for('edit_user', id=user_id, action='delete') }}" class="delete-button" onclick="return confirm('Är du säker på att du vill radera denna användaren?');">Radera användare</a>
+
         </form>
     </div>
 
@@ -194,82 +266,50 @@
 
         function addTimeSetting() {
             var container = document.getElementById('time-settings-container');
-            var settingsCount = container.getElementsByClassName('time-setting').length;
+            var settingsCount = container.getElementsByClassName('time-setting').length + 1;
+
             var newSetting = container.children[0].cloneNode(true);
-
-            // Increment settingsCount for the new setting
-            settingsCount++;
-
-            // Update the legend to indicate the number for the new time setting
             newSetting.getElementsByTagName('legend')[0].textContent = 'Filtrering ' + settingsCount;
 
-            var dayCheckboxes = newSetting.querySelectorAll('[name^="days1[]"]');
+            var dayCheckboxes = newSetting.querySelectorAll('.checkbox');
             dayCheckboxes.forEach(function(checkbox) {
                 checkbox.name = 'days' + settingsCount + '[]';
                 checkbox.checked = false;
             });
 
-            // Update the IDs and names of the new setting's elements
-            newSetting.id = 'timeSetting' + (settingsCount + 1);
-            var wholeDayCheckbox = newSetting.querySelector('[id^="wholeDay"]');
-            var startTimeInput = newSetting.querySelector('[id^="startTime"]');
-            var endTimeInput = newSetting.querySelector('[id^="endTime"]');
+            updateElementIDsAndNames(newSetting, settingsCount);
 
-            wholeDayCheckbox.id = 'wholeDay' + (settingsCount + 1);
-            wholeDayCheckbox.name = 'wholeDay' + (settingsCount + 1);
-            wholeDayCheckbox.onchange = function() { toggleTimeInputs(this, (settingsCount + 1)); };
-
-            startTimeInput.id = 'startTime' + (settingsCount + 1);
-            startTimeInput.name = 'startTime' + (settingsCount + 1);
-
-            endTimeInput.id = 'endTime' + (settingsCount + 1);
-            endTimeInput.name = 'endTime' + (settingsCount + 1);
-
-            var lowestSeverityInput = newSetting.querySelector('[id^="lowestSeverity"]');
-            var highestSeverityInput = newSetting.querySelector('[id^="highestSeverity"]');
-
-            lowestSeverityInput.id = 'lowestSeverity' + (settingsCount + 1);
-            lowestSeverityInput.name = 'lowestSeverity' + (settingsCount + 1);
-
-            highestSeverityInput.id = 'highestSeverity' + (settingsCount + 1);
-            highestSeverityInput.name = 'highestSeverity' + (settingsCount + 1);
-
-            var WordFilter1 = newSetting.querySelector('[id^="WordFilter"]');
-            WordFilter1.id = 'WordFilter' + (settingsCount + 1);
-            WordFilter1.name = 'WordFilter' + (settingsCount + 1);
-
-            var days = newSetting.querySelectorAll('[name^="days"]');
-            for (var i = 0; i < days.length; i++) {
-                days[i].checked = false;
-            }
-
-            startTimeInput.disabled = false;
-            endTimeInput.disabled = false;
-            startTimeInput.value = '';
-            endTimeInput.value = '';
-            wholeDayCheckbox.checked = false;
-            lowestSeverityInput.value = '';
-            highestSeverityInput.value = '';
-
-
-            wholeDayCheckbox.onchange = function() { toggleTimeInputs(this, (settingsCount + 1)); };
-
-
-            toggleTimeInputs(wholeDayCheckbox, settingsCount + 1);
-
-            // Append the new setting to the container
             container.appendChild(newSetting);
 
-            // Add a remove button to the new setting
+            var removeButton = createRemoveButton();
+            newSetting.appendChild(removeButton);
+        }
+
+
+        function updateElementIDsAndNames(setting, index) {
+            setting.id = 'timeSetting' + index;
+
+            var elementsToUpdate = setting.querySelectorAll('[id^="wholeDay"], [id^="startTime"], [id^="endTime"], [id^="lowestSeverity"], [id^="highestSeverity"], [id^="WordFilter"]');
+            elementsToUpdate.forEach(function(element) {
+                var baseId = element.id.slice(0, -1);
+                element.id = baseId + index;
+                element.name = element.id;
+            });
+        }
+
+        function createRemoveButton() {
             var removeButton = document.createElement('button');
             removeButton.type = 'button';
             removeButton.textContent = 'Ta bort filtrering';
             removeButton.className = 'remove-time-setting';
             removeButton.onclick = function() {
-                container.removeChild(newSetting);
+                this.parentElement.remove();
             };
-            newSetting.appendChild(removeButton);
+            return removeButton;
         }
+
+
+
 
 
         function goBack() {
@@ -310,24 +350,24 @@
 
             for (var i = 0; i < timeSettings.length; i++) {
                 var timeSetting = timeSettings[i];
-                var settingNumber = i + 1; // since your settings start with 1, not 0
+                var settingNumber = i + 1;
 
                 var lowestSeverityInput = document.getElementById('lowestSeverity' + settingNumber);
                 var highestSeverityInput = document.getElementById('highestSeverity' + settingNumber);
 
                 // Validate the severity range
                 if (lowestSeverityInput.value < 0 || lowestSeverityInput.value > 1000) {
-                    alert('Lägsta allvarlighetsgrad måste vara mellan 0 och 1000.');
-                    return false;
-                }
-
-                if (highestSeverityInput.value < 0 || highestSeverityInput.value > 1000) {
                     alert('Högsta allvarlighetsgrad måste vara mellan 0 och 1000.');
                     return false;
                 }
 
+                if (highestSeverityInput.value < 0 || highestSeverityInput.value > 1000) {
+                    alert('Lägsta allvarlighetsgrad måste vara mellan 0 och 1000.');
+                    return false;
+                }
+
                 // Validate that the lowest severity is less than the highest severity
-                if (parseInt(lowestSeverityInput.value) >= parseInt(highestSeverityInput.value)) {
+                if (parseInt(lowestSeverityInput.value) <= parseInt(highestSeverityInput.value)) {
                     alert('Lägsta allvarlighetsgrad måste vara lägre än högsta allvarlighetsgrad.');
                     return false;
                 }
@@ -342,6 +382,22 @@
             }
 
             return true;
+        }
+
+
+    document.getElementById('deleteButton').addEventListener('click', function() {
+        if (confirm('Är du säker på att du vill radera denna användaren?')) {
+            window.location.href = "{{ url_for('edit_user', id=user_id, action='delete') }}";
+
+        }
+    });
+
+        function openPopup() {
+            document.getElementById("myPopup").style.display = "block";
+        }
+
+        function closePopup() {
+            document.getElementById("myPopup").style.display = "none";
         }
 
 
