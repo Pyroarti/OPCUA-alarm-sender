@@ -16,6 +16,7 @@ from asyncua import ua, Client
 import logging
 from queue import Queue
 from threading import Thread
+import json
 
 try:
     from create_logger import setup_logger
@@ -40,7 +41,7 @@ logger_opcua_alarm = setup_logger("opcua_alarms")
 
 # Config files
 config_manager = ConfigHandler()
-phone_book = config_manager.phone_book
+phone_book:dict = config_manager.phone_book
 opcua_alarm_config = config_manager.opcua_server_alarm_config
 
 # Config data
@@ -215,7 +216,6 @@ class SubHandler:
 
         for user in phone_book:
             if user.get('Active') == 'Yes':
-                word_filter_list = []
                 user_settings = user.get('timeSettings', [])
 
                 for setting in user_settings:
@@ -224,29 +224,44 @@ class SubHandler:
                         end_time = datetime.strptime(setting.get('endTime', '00:00'), '%H:%M').time()
 
                         if start_time <= current_time <= end_time:
-                            lowest_severity = setting.get('lowestSeverity')
-                            highest_severity = setting.get('highestSeverity')
-                            lowest_severity = int(lowest_severity)
-                            highest_severity = int(highest_severity)
+                            lowest_severity = int(setting.get('lowestSeverity', 0))
+                            highest_severity = int(setting.get('highestSeverity', 100))
 
-                            if lowest_severity <= severity <= highest_severity:
+                            if lowest_severity >= severity >= highest_severity:
                                 phone_number = user.get('phone_number')
                                 name = user.get('Name')
                                 message = f"{SMS_MESSAGE} {opcua_alarm_message}, allvarlighetsgrad: {severity}"
 
-                                word_filter = setting.get('wordFilter', ())
+                                word_filter = setting.get('wordFilter', '')
+
                                 if word_filter:
-                                    word_filter_lower = word_filter.lower()
-                                    word_filter_list.append(word_filter_lower.split('.'))
+                                    include_words, exclude_words = parse_filter(word_filter)
+                                    alarm_message_lower = opcua_alarm_message.lower()
 
-                                    if any(word in opcua_alarm_message.lower() for word in word_filter):
+                                    if (any(word in alarm_message_lower for word in include_words) and
+                                        not any(word in alarm_message_lower for word in exclude_words)):
+
                                         sms_queue.put((phone_number, message))
-
                                         logger_opcua_alarm.info(f"Sent SMS to {name}")
                                 else:
                                     sms_queue.put((phone_number, message))
-
                                     logger_opcua_alarm.info(f"Sent SMS to {name}")
+
+def parse_filter(filter_str):
+    # Split the filter string into include and exclude lists
+    parts = filter_str.split('.')
+    include_words = []
+    exclude_words = []
+
+    for part in parts:
+        if part.startswith('"') and part.endswith('"'):
+            include_words.append(part[1:-1].lower())  # Add phrase without quotes
+        elif part.startswith('-'):
+            exclude_words.append(part[1:].lower())  # Add word without minus
+        else:
+            include_words.append(part.lower())
+
+    return include_words, exclude_words
 
 
 async def monitor_alarms():
@@ -276,3 +291,4 @@ async def monitor_alarms():
 
 if __name__ == "__main__":
     asyncio.run(monitor_alarms())
+

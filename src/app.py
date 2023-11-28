@@ -163,7 +163,8 @@ def edit_user(id):
                         "startTime": request.form[f'startTime{index}'],
                         "endTime": request.form[f'endTime{index}'],
                         "lowestSeverity": request.form[f'lowestSeverity{index}'],
-                        "highestSeverity": request.form[f'highestSeverity{index}']
+                        "highestSeverity": request.form[f'highestSeverity{index}'],
+                        "wordFilter": request.form[f'WordFilter{index}']
                     }
                     new_time_settings.append(time_setting)
                     index += 1
