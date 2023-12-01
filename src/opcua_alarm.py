@@ -200,10 +200,11 @@ class SubHandler:
 
         if opcua_alarm_message["Message"]:
             if opcua_alarm_message["Message"] in self.recurring_alarms:
-                if opcua_alarm_message["AckedState"] == "False":
+                if opcua_alarm_message["AckedState"] == "Unacknowledged":
                     return
-                elif opcua_alarm_message["AckedState"] == "True":
+                elif opcua_alarm_message["AckedState"] == "Acknowledged":
                     self.recurring_alarms.remove(opcua_alarm_message["Message"])
+                    return
             else:
                 self.recurring_alarms.add(opcua_alarm_message["Message"])
 
