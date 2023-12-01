@@ -160,6 +160,7 @@ class SubHandler:
 
     def __init__(self, address: str):
         self.address = address
+        self.recurring_alarms = set()
 
     def status_change_notification(self, status: ua.StatusChangeNotification):
         """
@@ -169,14 +170,12 @@ class SubHandler:
         logger_opcua_alarm.info(status)
 
 
-
     async def event_notification(self, event):
         """
         This function is called when an event is received from the OPC UA server.
         and saves it to a log file.
         returns: the event message
         """
-        logger_opcua_alarm.info(event)
 
         opcua_alarm_message = {
             "New event received from": self.address
@@ -198,11 +197,19 @@ class SubHandler:
         if hasattr(event, "NodeId") and hasattr(event.NodeId, "Identifier"):
             opcua_alarm_message["Identifier"] = str(event.NodeId.Identifier)
 
-        if SEND_SMS:
-            if opcua_alarm_message["ActiveState"] == "Active":
-                await self.user_notification(opcua_alarm_message["Message"], opcua_alarm_message['Severity'])
-                logger_opcua_alarm.info(f"New event received from {self.address}: {opcua_alarm_message}")
 
+        if opcua_alarm_message["Message"]:
+            if opcua_alarm_message["Message"] in self.recurring_alarms:
+                if opcua_alarm_message["AckedState"] == "False":
+                    return
+                elif opcua_alarm_message["AckedState"] == "True":
+                    self.recurring_alarms.remove(opcua_alarm_message["Message"])
+            else:
+                self.recurring_alarms.add(opcua_alarm_message["Message"])
+
+        if SEND_SMS and opcua_alarm_message["ActiveState"] == "Active":
+            await self.user_notification(opcua_alarm_message["Message"], opcua_alarm_message['Severity'])
+            logger_opcua_alarm.info(f"New event received from {self.address}: {opcua_alarm_message}")
         else:
             if opcua_alarm_message["ActiveState"] == "Active":
                 logger_opcua_alarm.info(f"New event received from {self.address}: {opcua_alarm_message}")
