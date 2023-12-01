@@ -252,9 +252,13 @@ class SubHandler:
 
                                         sms_queue.put((phone_number, message))
                                         logger_opcua_alarm.info(f"Sent SMS to {name}")
+                                        break
+
                                 else:
                                     sms_queue.put((phone_number, message))
                                     logger_opcua_alarm.info(f"Sent SMS to {name}")
+                                    break
+
 
 def parse_filter(filter_str):
     # Split the filter string into include and exclude lists
