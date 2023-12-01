@@ -290,11 +290,16 @@
 
             var elementsToUpdate = setting.querySelectorAll('[id^="wholeDay"], [id^="startTime"], [id^="endTime"], [id^="lowestSeverity"], [id^="highestSeverity"], [id^="WordFilter"]');
             elementsToUpdate.forEach(function(element) {
-                var baseId = element.id.slice(0, -1);
+                var baseId = element.id.match(/^[^\d]+/)[0]; // Extract the base ID without the number
                 element.id = baseId + index;
-                element.name = element.id;
+                element.name = baseId + index;
+
+                if (element.type === 'checkbox' && element.classList.contains('checkbox')) {
+                    element.setAttribute('onchange', 'toggleTimeInputs(this, ' + index + ')');
+                }
             });
         }
+
 
         function createRemoveButton(index) {
             var removeButton = document.createElement('button');
@@ -303,6 +308,11 @@
             removeButton.className = 'remove-time-setting';
             removeButton.onclick = function() {
                 var settingElement = this.parentElement;
+                var inputs = settingElement.querySelectorAll('input');
+                inputs.forEach(function(input) {
+                    input.disabled = true; // Disable all inputs
+                });
+
                 var deleteFlag = document.createElement('input');
                 deleteFlag.type = 'hidden';
                 deleteFlag.name = 'deleteTimeSetting' + index;
@@ -370,6 +380,11 @@
             for (var i = 0; i < timeSettings.length; i++) {
                 var timeSetting = timeSettings[i];
                 var settingNumber = i + 1;
+
+                // Skip validation for time settings that are hidden or marked for deletion
+                if (timeSetting.style.display === 'none' || timeSetting.querySelector('[name^="deleteTimeSetting"]')) {
+                    continue;
+                }
 
                 var lowestSeverityInput = document.getElementById('lowestSeverity' + settingNumber);
                 var highestSeverityInput = document.getElementById('highestSeverity' + settingNumber);
