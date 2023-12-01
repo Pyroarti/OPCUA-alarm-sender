@@ -215,10 +215,10 @@
                     <input type="time" class="time-input" id="endTime1" name="endTime1" required><br>
 
                     <div class="helper-text">Allvarlighetsgraden på larmen (0-1000)</div>
-                    <label for="lowestSeverity1">Högsta allvarlighetsgrad:</label>
+                    <label for="lowestSeverity1">Till:</label>
                     <input type="number" id="lowestSeverity1" name="lowestSeverity1" required><br>
 
-                    <label for="highestSeverity1">Lägsta allvarlighetsgrad:</label>
+                    <label for="highestSeverity1">Från:</label>
                     <input type="number" id="highestSeverity1" name="highestSeverity1" required><br>
 
                     <button type="button" class="help-button" onclick="openPopup()">?</button><br>
@@ -385,12 +385,6 @@
 
                     if (highestSeverityInput.value < 0 || highestSeverityInput.value > 1000) {
                         alert('Lägsta allvarlighetsgrad måste vara mellan 0 och 1000.');
-                        return false;
-                    }
-
-                    // Validate that the lowest severity is less than the highest severity
-                    if (parseInt(lowestSeverityInput.value) <= parseInt(highestSeverityInput.value)) {
-                        alert('Lägsta allvarlighetsgrad måste vara lägre än högsta allvarlighetsgrad.');
                         return false;
                     }
 

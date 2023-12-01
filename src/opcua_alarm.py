@@ -235,7 +235,8 @@ class SubHandler:
                             lowest_severity = int(setting.get('lowestSeverity', 0))
                             highest_severity = int(setting.get('highestSeverity', 100))
 
-                            if lowest_severity >= severity >= highest_severity:
+                            if min(lowest_severity, highest_severity) <= severity <= max(lowest_severity, highest_severity):
+
                                 phone_number = user.get('phone_number')
                                 name = user.get('Name')
                                 message = f"{SMS_MESSAGE} {opcua_alarm_message}, allvarlighetsgrad: {severity}"
