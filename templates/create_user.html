@@ -191,6 +191,7 @@
                 <!-- The first time setting fieldset -->
                 <fieldset class="time-setting">
                     <legend>Filtrering 1</legend>
+                    <input type="hidden" id="totalTimeSettings" name="totalTimeSettings" value="1">
                     <div class="helper-text">Dagar i veckan då larmet ska skickas</div>
                     <label>Dagar:</label>
                     <input type="checkbox" class="checkbox" name="days1[]" value="Måndag"> Måndag
@@ -318,6 +319,18 @@
                     container.removeChild(newSetting);
                 };
                 newSetting.appendChild(removeButton);
+
+                var totalSettingsInput = document.getElementById('totalTimeSettings');
+                if (totalSettingsInput) {
+                    totalSettingsInput.value = settingsCount + 1;
+                } else {
+                    totalSettingsInput = document.createElement('input');
+                    totalSettingsInput.type = 'hidden';
+                    totalSettingsInput.id = 'totalTimeSettings';
+                    totalSettingsInput.name = 'totalTimeSettings';
+                    totalSettingsInput.value = settingsCount + 1;
+                    document.getElementById('create-user-form').appendChild(totalSettingsInput);
+                }
             }
 
 

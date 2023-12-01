@@ -296,18 +296,38 @@
             });
         }
 
-        function createRemoveButton() {
+        function createRemoveButton(index) {
             var removeButton = document.createElement('button');
             removeButton.type = 'button';
             removeButton.textContent = 'Ta bort filtrering';
             removeButton.className = 'remove-time-setting';
             removeButton.onclick = function() {
-                this.parentElement.remove();
+                var settingElement = this.parentElement;
+                var deleteFlag = document.createElement('input');
+                deleteFlag.type = 'hidden';
+                deleteFlag.name = 'deleteTimeSetting' + index;
+                deleteFlag.value = 'true';
+                settingElement.appendChild(deleteFlag);
+
+                settingElement.style.display = 'none';
             };
             return removeButton;
         }
 
+        function addDeleteButtonsToExistingSettings() {
+            var existingSettings = document.querySelectorAll('.time-setting');
+            existingSettings.forEach(function(setting, index) {
+                if (index > 0) {
+                    var removeButton = createRemoveButton(index + 1);
+                    setting.appendChild(removeButton);
+                }
+            });
+        }
 
+        // Call the function when the page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            addDeleteButtonsToExistingSettings();
+        });
 
 
 

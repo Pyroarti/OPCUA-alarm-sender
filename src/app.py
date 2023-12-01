@@ -71,31 +71,30 @@ def create_user():
     if request.method == 'POST':
         name = request.form['name']
         phone_number = request.form['phone_number']
+        total_time_settings = int(request.form['totalTimeSettings'])
 
         time_settings = []
 
-        index = 1
-        while True:
+        for index in range(1, total_time_settings + 1):
             day_field = f'days{index}[]'
+            if day_field not in request.form:
+                continue
+
             start_time_field = f'startTime{index}'
             end_time_field = f'endTime{index}'
             lowest_severity_field = f'lowestSeverity{index}'
             highest_severity_field = f'highestSeverity{index}'
             word_filter_field = f'WordFilter{index}'
 
-            if start_time_field in request.form:
-                time_setting = {
-                    "days": request.form.getlist(day_field),
-                    "startTime": request.form[start_time_field],
-                    "endTime": request.form[end_time_field],
-                    "lowestSeverity": request.form[lowest_severity_field],
-                    "highestSeverity": request.form[highest_severity_field],
-                    "wordFilter": request.form[word_filter_field]
-                }
-                time_settings.append(time_setting)
-                index += 1
-            else:
-                break
+            time_setting = {
+                "days": request.form.getlist(day_field),
+                "startTime": request.form[start_time_field],
+                "endTime": request.form[end_time_field],
+                "lowestSeverity": request.form[lowest_severity_field],
+                "highestSeverity": request.form[highest_severity_field],
+                "wordFilter": request.form[word_filter_field]
+            }
+            time_settings.append(time_setting)
 
         if not name or not phone_number or not time_settings:
             flash('Fyll i alla fält.')
@@ -156,7 +155,13 @@ def edit_user(id):
             new_time_settings = []
             index = 1
             while True:
+                delete_key = f'deleteTimeSetting{index}'
                 days_key = f'days{index}[]'
+
+                if delete_key in request.form:
+                    index += 1
+                    continue
+
                 if days_key in request.form:
                     time_setting = {
                         "days": request.form.getlist(days_key),
@@ -167,9 +172,9 @@ def edit_user(id):
                         "wordFilter": request.form[f'WordFilter{index}']
                     }
                     new_time_settings.append(time_setting)
-                    index += 1
                 else:
                     break
+                index += 1
             user_to_edit['timeSettings'] = new_time_settings
 
 
