@@ -4,7 +4,7 @@ import asyncio
 from app import main as start_web_server
 from opcua_alarm import monitor_alarms
 from create_logger import setup_logger
-from watchdog import main_watchdog
+from opcua_watchdog import main_watchdog
 
 logger = setup_logger(__name__)
 
