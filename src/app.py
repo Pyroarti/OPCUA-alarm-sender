@@ -22,30 +22,30 @@ flask_config = data_encrypt.encrypt_credentials('flask_login_config.json', "flas
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
-    """
-    Login page.
-    Username and password are stored crypted in a JSON file.
-    Not the best security, but good enough for this project.
-    """
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
 
-        encrypted_username = flask_config["username"]
-        encrypted_password = flask_config["password"]
+        with open('users.json', 'r') as f:
+            users_data = json.load(f)
+            users = users_data['users']
 
-        if username == encrypted_username and password == encrypted_password:
+        user = next((u for u in users if u['username'] == username and u['password'] == password), None)
+
+        if user:
             session['logged_in'] = True
             session['username'] = username
+            session['user_type'] = user['type']  # Storing user type
             return redirect(url_for('index'))
         else:
-            pass
+            flash('Invalid username or password')
+
     return render_template("login.html")
 
 
 @app.route("/logout")
 def logout():
-    session['logged_in'] = False
+    session.clear()
     return redirect(url_for('index'))
 
 
