@@ -25,10 +25,7 @@ def login():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-
-        with open('users.json', 'r') as f:
-            users_data = json.load(f)
-            users = users_data['users']
+        users = flask_config['users']
 
         user = next((u for u in users if u['username'] == username and u['password'] == password), None)
 
