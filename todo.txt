@@ -1,0 +1,3 @@
+* Lägg till temp övervakning på PI och skicka ut sms om den blir för varm
+* Lägg till minnes övervaking på PI och skicka ut sms om den blir full
+* Lägg till en config sida där man kan ändra vilka servrar den lyssnar på och annat

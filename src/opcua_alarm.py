@@ -41,7 +41,6 @@ logger_opcua_alarm = setup_logger("opcua_alarms")
 
 # Config files
 config_manager = ConfigHandler()
-phone_book:dict = config_manager.phone_book
 opcua_alarm_config = config_manager.opcua_server_alarm_config
 
 # Config data
@@ -217,6 +216,8 @@ class SubHandler:
 
 
     async def user_notification(self, opcua_alarm_message:str, severity:int):
+        phone_book:dict = config_manager.phone_book
+
         tasks = []
         current_time = datetime.now().time()
         current_day = datetime.now().strftime('%A')
