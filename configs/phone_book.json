@@ -1,0 +1,91 @@
+[
+    {
+        "Name": "Roberts Balulis",
+        "phone_number": "0707349518",
+        "Active": "No",
+        "timeSettings": [
+            {
+                "days": [
+                    "Måndag"
+                ],
+                "startTime": "01:00",
+                "endTime": "23:00",
+                "lowestSeverity": "234",
+                "highestSeverity": "1",
+                "wordFilter": "Hög.Låg.\"Um01 motor hög temp\".-tryck"
+            },
+            {
+                "days": [
+                    "Söndag"
+                ],
+                "startTime": "00:00",
+                "endTime": "23:59",
+                "lowestSeverity": "500",
+                "highestSeverity": "12",
+                "wordFilter": "Motor"
+            }
+        ]
+    },
+    {
+        "Name": "jturs",
+        "phone_number": "123",
+        "Active": "Yes",
+        "timeSettings": [
+            {
+                "days": [
+                    "Måndag",
+                    "Tisdag"
+                ],
+                "startTime": "00:00",
+                "endTime": "23:59",
+                "lowestSeverity": "321",
+                "highestSeverity": "1",
+                "wordFilter": "Låg.hög"
+            },
+            {
+                "days": [
+                    "Torsdag",
+                    "Fredag"
+                ],
+                "startTime": "23:24",
+                "endTime": "23:59",
+                "lowestSeverity": "321",
+                "highestSeverity": "2",
+                "wordFilter": "Låg"
+            },
+            {
+                "days": [
+                    "Måndag",
+                    "Tisdag",
+                    "Onsdag",
+                    "Torsdag",
+                    "Fredag",
+                    "Lördag",
+                    "Söndag"
+                ],
+                "startTime": "00:00",
+                "endTime": "23:59",
+                "lowestSeverity": "321",
+                "highestSeverity": "1",
+                "wordFilter": "Låg.hög"
+            }
+        ]
+    },
+    {
+        "Name": "dasd",
+        "phone_number": "213",
+        "Active": "Yes",
+        "timeSettings": [
+            {
+                "days": [
+                    "Tisdag"
+                ],
+                "startTime": "00:00",
+                "endTime": "23:59",
+                "lowestSeverity": "1",
+                "highestSeverity": "234",
+                "wordFilter": ""
+            }
+        ]
+    }
+]

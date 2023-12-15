@@ -191,6 +191,9 @@
             <label for="phone_number">Telefon Nummer:</label>
             <input type="text" id="phone_number" name="phone_number" value="{{ user.phone_number }}" required><br>
 
+            <label for="active">Aktiverad:</label>
+            <input type="checkbox" class="checkbox" id="active" name="active" {% if user.Active == 'Yes' %}checked{% endif %}><br>
+
             <!-- Time Settings -->
             <div id="time-settings-container">
                 {% for setting in user.timeSettings %}

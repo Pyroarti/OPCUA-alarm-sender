@@ -172,6 +172,14 @@ def edit_user(id):
                 else:
                     break
                 index += 1
+
+            new_name = request.form['name']
+            new_phone_number = request.form['phone_number']
+            new_active = 'Yes' if 'active' in request.form else 'No'
+
+            user_to_edit['Name'] = new_name
+            user_to_edit['phone_number'] = new_phone_number
+            user_to_edit['Active'] = new_active
             user_to_edit['timeSettings'] = new_time_settings
 
 
