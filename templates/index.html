@@ -103,13 +103,31 @@
 
         }
 
-        .update-button {
+        .blue_button {
             background-color: #009afa;
             color: white;
             width: 13%;
             height: 80px;
             font-size: 25px;
+            text-align: center;
+            line-height: 80px; /* Center text vertically */
+            display: inline-block; /* Allows width and height */
+            text-decoration: none; /* Removes underline from links */
+            border: none; /* Removes border */
+            cursor: pointer; /* Changes cursor to pointer */
+            border-radius: 5px; /* Optional: for rounded corners */
         }
+
+        .blue_button:hover {
+            background-color: #0077cc; /* Darker shade for hover effect */
+        }
+
+        .button-container {
+            display: flex;
+            justify-content: flex-start; /* Align buttons to the start of the container */
+            gap: 10px; /* Optional: adds space between buttons */
+        }
+
 
 
     </style>
@@ -128,15 +146,11 @@
         {% endif %}
     {% endwith %}
 
-    <button id="createUserButton" class="update-button">Skapa användare</button>
 
-    <script>
-    document.getElementById('createUserButton').addEventListener('click', function() {
-        window.location.href = "{{ url_for('create_user') }}";
-    });
-    </script>
-
-
+    <div class="button-container">
+        <a href="{{ url_for('create_user') }}" class="blue_button">Skapa användare</a>
+        <a href="{{ url_for('settings') }}" class="blue_button">Inställningar</a>
+    </div>
 
 
     <h2>Mottagare</h2>

@@ -218,6 +218,19 @@ def test_sms(id):
 
     return redirect(url_for('index'))
 
+
+@app.route("/settings", methods=["GET", "POST"])
+def settings():
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+    
+    print(session['user_type'])
+    
+
+    return redirect(url_for('settings'))
+    
+
+
 def main():
     with open (flask_server_config_file, 'r', encoding='utf8') as server_data:
         data = json.load(server_data)

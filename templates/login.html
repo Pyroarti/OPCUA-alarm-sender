@@ -4,44 +4,49 @@
     <meta charset="UTF-8">
     <title>Login</title>
     <style>
+
+        @import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600&display=swap');
+
         body {
-            background-color: #f2f2f2;
+            background-color: rgb(28,28,28);
             margin: 0;
             padding: 0;
-            font-family: Arial, Helvetica, sans-serif;
+            font-family: 'Open Sans', Arial, Helvetica, sans-serif;
         }
 
-
         .container {
-            width: 300px;
-            height: 220px;
-            position: absolute;
-            top: 0;
-            bottom: 0;
-            left: 0;
-            right: 0;
+            width: 600px;
+            height: 440px;
             margin: auto;
             padding: 2em;
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
             border-radius: 8px;
+            background-image: url("{{ url_for('static', filename='background.jpg') }}");
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
         }
+
 
         .logo {
             text-align: center;
             margin-bottom: 1em;
             width: 100%;
             height: 110%;
+            padding-top: 15%;
         }
 
 
         input[type=text], input[type=password],button {
-            width: 100%;
+            width: 50%;
             padding: 12px 20px;
             margin: 8px 0;
             box-sizing: border-box;
             height: 50px;
             border: 1px solid #ccc;
             border-radius: 4px;
+            font-size: 16px;
+            transition: all 0.3s ease;
         }
 
         button {
@@ -50,24 +55,185 @@
             border: none;
         }
 
-        button:hover {
+        input[type=text]:hover, input[type=password]:hover, button:hover {
+            box-shadow: 0px 0px 8px 0px rgba(0, 123, 255, 0.8);
+        }
+
+        .arrow-container {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .down-arrow:hover, .up-arrow:hover {
+            animation: bounce 1.5s infinite alternate;
+        }
+
+        @keyframes bounce {
+            to {
+                transform: translateY(-20%);
+            }
+        }
+
+        /* Responsive Design */
+        @media screen and (max-width: 600px) {
+            .container {
+                width: 90%;
+                height: auto;
+            }
+        }
+
+        /* About container */
+        .about-container {
+            background-color: white; /* or any other color */
+            color: black; /* text color */
+            padding: 20px;
+            margin-top: 500px;
+        }
+
+        .about-container h2, .about-container h3 {
+            color: #333; /* Adjust color as needed */
+        }
+
+        .about-container p, .about-container ul {
+            font-size: 16px; /* Adjust size as needed */
+            line-height: 1.6; /* Adjust line height for readability */
+        }
+
+        .about-container a {
+            color: #007bff; /* Adjust link color as needed */
+        }
+
+        /* Style for arrows */
+        .down-arrow, .up-arrow {
+            text-decoration: none;
+            font-size: 24px;
+            color: black; /* or your preferred color */
+        }
+
+        .arrow-text {
+            color: #f0f0f0; /* Light color for contrast */
+            font-size: 20px; /* Slightly larger */
+            font-weight: bold; /* Make it bold */
+            margin-bottom: 5px;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5); /* Subtle shadow for depth */
+            transition: transform 0.3s ease, color 0.3s ease; /* Smooth transition for hover */
+        }
+
+        .down-arrow, .up-arrow {
+            text-decoration: none;
+            font-size: 40px; /* Increased size */
+            color: black; /* or your preferred color */
+        }
+
+        .nav-indicator {
+            position: fixed;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .nav-dot {
+            display: block;
+            width: 25px;
+            height: 25px;
+            background-color: #007bff;
+            border-radius: 50%;
+            margin-bottom: 8px;
+            transition: background-color 0.3s;
+        }
+
+        .nav-dot:last-child {
+            margin-bottom: 0;
+        }
+
+        .nav-dot:hover {
             background-color: #0056b3;
         }
 
+        .nav-line {
+            width: 5px;
+            height: 400px;
+            background-color: #007bff;
+            margin: 0 auto;
+        }
+
+
+
     </style>
 </head>
-<body>
+<body id="top">
+
+    <div class="nav-indicator">
+        <a href="#top" class="nav-dot" id="nav-dot-top"></a>
+        <div class="nav-line"></div>
+        <a href="#about" class="nav-dot" id="nav-dot-about"></a>
+    </div>
+    
+
+    <div class="spacer" style="height: 250px;"></div>
+
+
 
     <div class="container">
         <div class="logo">
-            <img src="{{ url_for('static', filename='login_logo.png') }}" alt="Logo" width="150">
+            <img src="{{ url_for('static', filename='login_logo_black.png') }}" alt="Logo" width="250">
         <form action="{{ url_for('login') }}" method="post">
-            <input type="text" name="username" placeholder="Namn">
-            <input type="password" name="password" placeholder="Lösenord">
-            <button type="submit">Logga in</button>
+            <input type="text" name="username" placeholder="Username">
+            <input type="password" name="password" placeholder="Password">
+            <button type="submit">Login</button>
         </div>
         </form>
     </div>
+
+    <div class="spacer" style="height: 500px;"></div>
+
+    <div id="about" class="about-container">
+
+        <h2>Contact Us</h2>
+        <p>If you have any questions, please feel free to reach out to us:</p>
+        <ul>
+            <li>Email: <a href="mailto:rbs@lmt.se">rbs@lmt.se</a></li>
+            <li>Phone: har glömt mitt nummer</li>
+        </ul>
+
+        <h3>Copyright</h3>
+        <p>&copy; 2024 LMT Innovate Engineering. All rights reserved.</p>
+
+        <p class="arrow-text">Back to Top</p>
+        <a href="#top" class="up-arrow">⬆️</a>
+    </div>
+
+    <script>
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+    
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+
+
+        document.addEventListener("scroll", function() {
+            var topSection = document.getElementById("top");
+            var aboutSection = document.getElementById("about");
+            var dotTop = document.getElementById("nav-dot-top");
+            var dotAbout = document.getElementById("nav-dot-about");
+
+            var scrollPosition = document.documentElement.scrollTop || document.body.scrollTop;
+
+            if (scrollPosition < aboutSection.offsetTop) {
+                dotTop.style.backgroundColor = "#0056b3"; // Highlight color
+                dotAbout.style.backgroundColor = "#007bff"; // Default color
+            } else {
+                dotTop.style.backgroundColor = "#007bff"; // Default color
+                dotAbout.style.backgroundColor = "#0056b3"; // Highlight color
+            }
+        });
+
+    </script>
+    
 
 </body>
 </html>
