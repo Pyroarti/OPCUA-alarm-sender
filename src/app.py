@@ -1,6 +1,7 @@
 from flask import Flask, request, render_template, redirect, flash, url_for, session
 import json
 import os
+from waitress import serve
 
 from sms_sender import send_sms
 from data_encrypt import DataEncryptor
@@ -228,8 +229,6 @@ def settings():
     
 
     return redirect(url_for('settings'))
-    
-
 
 def main():
     with open (flask_server_config_file, 'r', encoding='utf8') as server_data:
@@ -237,4 +236,5 @@ def main():
         host = data['ip_adress']
         port = data['port']
 
-    app.run(host=host, port=port, debug=False)
+    serve(app, host=host, port=port)
+    

@@ -15,8 +15,8 @@
         }
 
         .container {
-            width: 600px;
-            height: 440px;
+            width: 700px;
+            height: 500px;
             margin: auto;
             padding: 2em;
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
@@ -42,7 +42,7 @@
             padding: 12px 20px;
             margin: 8px 0;
             box-sizing: border-box;
-            height: 50px;
+            height: 55px;
             border: 1px solid #ccc;
             border-radius: 4px;
             font-size: 16px;
@@ -170,13 +170,13 @@
     </div>
 
 
-    <div class="spacer" style="height: 250px;"></div>
+    <div class="spacer" style="height: 350px;"></div>
 
 
 
     <div class="container">
         <div class="logo">
-            <img src="{{ url_for('static', filename='login_logo_black.png') }}" alt="Logo" width="250">
+            <img src="{{ url_for('static', filename='login_logo_black.png') }}" alt="Logo" width="300">
         <form action="{{ url_for('login') }}" method="post">
             <input type="text" name="username" placeholder="Username">
             <input type="password" name="password" placeholder="Password">

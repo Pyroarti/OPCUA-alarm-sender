@@ -3,185 +3,174 @@
 <head>
     <title>OPC UA Alarm Notifier</title>
     <style>
-
         body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            
+            background-image: url("{{ url_for('static', filename='background.jpg') }}");
+            color: #333;
+            font-size: 18px;
         }
 
-        table {
-            border-collapse: collapse;
-            width: 100%;
-            border: 1px solid #ccc;
-        }
-
-        th, td {
-            padding: 20px 8px;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
-            font-size: 24px
-        }
-
-        th {
-            background-color: #f2f2f2;
-        }
-
-        form {
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            padding: 20px;
-            margin-top: 20px;
-        }
-
-        label {
-            display: inline-block;
-            width: 150px;
-        }
-
-        input[type="text"] {
-            padding: 5px;
-            margin-bottom: 10px;
-            width: 250px;
-        }
-
-        input[type="number"] {
-            padding: 5px;
-            margin-bottom: 10px;
-            width: 100px;
-        }
-
-        input[type="submit"] {
-            padding: 10px 20px;
-            background-color: #007bff;
-            color: #fff;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        input[type="submit"]:hover {
-            background-color: #0056b3;
-        }
-
-        ul {
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            padding: 10px;
-            color: red;
-            list-style: none;
-        }
-
-        #severity-values {
-            margin-top: 10px;
-            margin-bottom: 10px;
-        }
-
-        #severity-slider {
-            margin-top: 20px;
-            margin-bottom: 20px;
-        }
-
-        input[type="submit"] {
-            margin-top: 20px;
-            margin-bottom: 20px;
-        }
-
-
-        .time-input {
-            font-size: 150%;
-            width: 100px;
-            padding-top: 10px;
-            padding-bottom: 10px;
-            margin-bottom: 20px;
-        }
-
-        .checkbox {
-            transform: scale(1.5);
-            width: 1.5em;
-            height: 1.5em;
-            margin-bottom: 20px;
-
-        }
-
-        .blue_button {
-            background-color: #009afa;
-            color: white;
-            width: 13%;
-            height: 80px;
-            font-size: 25px;
+        h1, h2 {
             text-align: center;
-            line-height: 80px; /* Center text vertically */
-            display: inline-block; /* Allows width and height */
-            text-decoration: none; /* Removes underline from links */
-            border: none; /* Removes border */
-            cursor: pointer; /* Changes cursor to pointer */
-            border-radius: 5px; /* Optional: for rounded corners */
+            color: #333;
+            font-size: 3em;
         }
 
-        .blue_button:hover {
-            background-color: #0077cc; /* Darker shade for hover effect */
+        .container {
+            width: 1500px;
+            height: 1000px;
+            margin: auto;
+            padding: 2em;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            background-color: rgb(255, 255, 255);
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
         }
 
         .button-container {
             display: flex;
-            justify-content: flex-start; /* Align buttons to the start of the container */
-            gap: 10px; /* Optional: adds space between buttons */
+            justify-content: center;
+            margin: 20px 0;
         }
 
+        .blue_button {
+            background-color: #007bff;
+            color: white;
+            padding: 12px 18px;
+            margin: 0 10px;
+            text-decoration: none;
+            font-size: 1.5em;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
 
+        .blue_button:hover {
+            background-color: #0056b3;
+        }
 
+        .blue_button_table {
+            background-color: #007bff;
+            color: white;
+            padding: 8px 14px;
+            margin: 0 8px;
+            text-decoration: none;
+            font-size: 1.0em;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .blue_button_table:hover {
+            background-color: #0056b3;
+        }
+
+        table {
+            width: 100%;
+            margin-top: 20px;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 15px;
+            border: 1px solid #ddd;
+            text-align: left;
+            font-size: 1.5em;
+        }
+
+        th {
+            background-color: #f2f2f2;
+            color: #333;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        tr:nth-child(odd) {
+            background-color: #dfdfdf;
+        }
+
+        ul {
+            list-style: none;
+            padding: 0;
+            margin: 20px 0;
+        }
+
+        ul li {
+            background: #ffdddd;
+            color: red;
+            margin: 5px 0;
+            padding: 10px;
+            border-radius: 4px;
+            font-size: 1.5em;
+        }
+
+        .custom-checkbox {
+            width: 20px;
+            height: 20px;
+            transform: scale(1.5);
+        }
     </style>
 </head>
 <body>
 
-    <h1>Opcua larm sändare</h1>
+    <div class="spacer" style="height: 120px;"></div>
 
-    {% with messages = get_flashed_messages() %}
-        {% if messages %}
-            <ul>
-            {% for message in messages %}
-                <li>{{ message }}</li>
-            {% endfor %}
-            </ul>
-        {% endif %}
-    {% endwith %}
+    <div class="container">
+        <h1>Alarm Notifier</h1>
 
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <ul>
+                {% for message in messages %}
+                    <li>{{ message }}</li>
+                {% endfor %}
+                </ul>
+            {% endif %}
+        {% endwith %}
 
-    <div class="button-container">
-        <a href="{{ url_for('create_user') }}" class="blue_button">Skapa användare</a>
-        <a href="{{ url_for('settings') }}" class="blue_button">Inställningar</a>
-    </div>
+        <div class="button-container">
+            <a href="{{ url_for('create_user') }}" class="blue_button">Create User</a>
+            <a href="{{ url_for('settings') }}" class="blue_button">Settings</a>
+        </div>
 
-
-    <h2>Mottagare</h2>
-    <table>
-        <thead>
-            <tr>
-                <th>Namn</th>
-                <th>Telefon nummer</th>
-                <th>Aktiv</th>
-                <th>Editera mottagare</th>
-                <th>Skicka test sms</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for user in users %}
+        <h2>Recipients</h2>
+        <table>
+            <thead>
                 <tr>
-                    <td>{{ user.Name }}</td>
-                    <td>{{ user.phone_number }}</td>
-                    <td>
-                        <input type="checkbox" {% if user.Active == 'Yes' %}checked{% endif %} disabled>
-                    </td>
-                    <td>
-                        <a href="{{ url_for('edit_user', id=loop.index0) }}">Editera</a>
-                    </td>
-                    <td>
-                        <a href="{{ url_for('test_sms', id=loop.index0) }}">Testa</a>
-                    </td>
+                    <th>Name</th>
+                    <th>Phone Number</th>
+                    <th>Active</th>
+                    <th>Edit Recipient</th>
+                    <th>Send Test SMS</th>
                 </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-
+            </thead>
+            <tbody>
+                {% for user in users %}
+                    <tr>
+                        <td>{{ user.Name }}</td>
+                        <td>{{ user.phone_number }}</td>
+                        <td>
+                            <input type="checkbox" class="custom-checkbox" {% if user.Active == 'Yes' %}checked{% endif %} disabled>
+                        </td>
+                        <td>
+                            <a href="{{ url_for('edit_user', id=loop.index0) }}" class="blue_button_table">Edit</a>
+                        </td>
+                        <td>
+                            <a href="{{ url_for('test_sms', id=loop.index0) }}" class="blue_button_table">Test</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 </body>
 </html>

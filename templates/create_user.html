@@ -2,152 +2,98 @@
 <html>
 <head>
     <style>
-
         body {
             background-color: #f5f5f5;
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-image: url("{{ url_for('static', filename='background.jpg') }}");
         }
-
 
         h1 {
-            font-size: 1.5em;
+            font-size: 2.5em;
+            color: #333;
+            text-align: center;
+            margin-bottom: 1em;
         }
 
-        label, input {
-            font-size: 1.2em;
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+
+        form {
+            display: grid;
+            grid-gap: 15px;
         }
 
         label {
-            display: inline-block;
-            width: 100px;
-
+            font-size: 1.2em;
+            margin-bottom: 5px;
+            color: #333;
         }
 
-
-        input[type="text"] {
-            width: 300px;
-            padding: 10px;
-            margin-bottom: 20px;
+        input[type="text"], input[type="number"], input[type="time"], input[type="filter_text"] {
+            width: 100%;
+            padding: 5px;
+            margin-bottom: 5px;
             border: 1px solid #ccc;
-            border-radius: 3px;
+            border-radius: 4px;
             box-sizing: border-box;
+            font-size: 1em;
         }
 
-        input[type="filter_text"] {
-            width: 500px;
-            height: 30px;
-            padding: 10px;
-            margin-bottom: 20px;
-            margin-left: 10px;
-            font-size: large;
-        }
-
-
-        input[type="submit"] {
-            width: 200px;
-            height: 100px;
-            font-size: 25px;
+        input[type="submit"], .button_add_setting, .button_back, .button_save_user, .remove-time-setting, .help-button {
+            font-size: 1.1em;
+            padding: 10px 15px;
             margin-top: 10px;
-            margin-left: 20px;
-        }
-
-        input[type="number"] {
-            width: 200px;
-            height: 30px;
-            margin-bottom: 10px;
-            margin-left: 100px;
-            margin-right: 100px;
-        }
-
-        .update-button {
-            background-color: #4CAF50;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
             color: white;
+            background-color: #007bff;
         }
 
-        .delete-button {
-            background-color: red;
-            color: white;
-        }
-
-        .time-input {
-            font-size: 150%;
-            width: 100px;
-            padding-top: 10px;
-            padding-bottom: 10px;
-            margin-bottom: 20px;
-        }
-
-        .checkbox {
-            transform: scale(1.2);
-            width: 1.5em;
-            height: 1.5em;
-            margin-bottom: 20px;
-
-        }
-
-        .button_back {
-            background-color: #009afa;
-            color: white;
-            width: 200px;
-            height: 100px;
-            font-size: 25px;
-            margin-top: 20px;
-        }
-        .button_add_setting {
-            background-color: #009afa;
-            color: white;
-            width: 200px;
-            height: 100px;
-            font-size: 25px;
-            margin-top: 10px;
-        }
-
-        .button_save_user {
-            background-color: #009afa;
-            color: white;
-            width: 200px;
-            height: 100px;
-            font-size: 25px;
-            margin-top: 10px;
+        input[type="submit"]:hover, .button_add_setting:hover, .button_back:hover, .button_save_user:hover, .remove-time-setting:hover, .help-button:hover {
+            background-color: #0056b3;
         }
 
         .remove-time-setting {
             background-color: #ff4d4d;
-            color: white;
-            width: 15%;
-            height: 50px;
-            padding: 5px 10px;
-            margin-top: 10px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
         }
 
-        .helper-text {
-            display: block;
-            margin-bottom: 5px;
-            margin-top: 30px;
-            color: #6c757d;
-            font-size: 1.0em;
+        .remove-time-setting:hover {
+            background-color: #cc0000;
         }
 
-        /* Popup Style */
+        .checkbox {
+            transform: scale(1.2);
+            margin-right: 10px;
+        }
+
         .popup {
             display: none;
             position: fixed;
             z-index: 1;
-            left: 40%;
-            top: 40%;
-            transform: translate(-40%, -40%);
-            border: 1px solid #888;
-            padding: 5px;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: 300px;
             background-color: white;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            padding: 20px;
         }
 
         .close {
             color: #aaa;
             float: right;
-            font-size: 40px;
+            font-size: 28px;
             font-weight: bold;
         }
 
@@ -159,33 +105,53 @@
         }
 
         .popup-content {
-            margin: 5px;
-            padding: 10px;
+            margin-top: 20px;
         }
 
-        button.help-button {
-            font-size: 16px;
-            padding: 10px 20px;
-            background-color: #009afa;
-            color: white;
+        .helper-text {
+            font-size: 1.0em;
+            color: #6c757d;
+            margin-bottom: 5px;
+            margin-top: 5px;
+        }
+
+        fieldset {
             border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 20px;
         }
 
-    </style>
-</head>
+        legend {
+            font-size: 1.4em;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .form-group {
+        margin-bottom: 10px;
+        }
+
+        .custom-checkbox {
+            width: 20px;
+            height: 20px;
+            transform: scale(1.5);
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+        }
+        </style>
+    </head>
 <body>
     <div class="container">
         <h1>Skapa användare</h1>
 
         <form method="post" action="create_user" id="create-user-form" onsubmit="return validateForm()">
-            <label for="name">Namn:</label>
-            <input type="text" id="name" name="name" required><br>
+            <div class="form-group">
+                <label for="name">Namn:</label>
+                <input type="text" id="name" name="name" required>
+            </div>
 
-            <label for="phone_number">Telefon Nummer:</label>
-            <input type="text" id="phone_number" name="phone_number" required><br>
+            <div class="form-group">
+                <label for="phone_number">Telefon Nummer:</label>
+                <input type="text" id="phone_number" name="phone_number" required>
+            </div>
 
             <div id="time-settings-container">
                 <!-- The first time setting fieldset -->
@@ -193,21 +159,23 @@
                     <legend>Filtrering 1</legend>
                     <input type="hidden" id="totalTimeSettings" name="totalTimeSettings" value="1">
                     <div class="helper-text">Dagar i veckan då larmet ska skickas</div>
-                    <label>Dagar:</label>
-                    <input type="checkbox" class="checkbox" name="days1[]" value="Måndag"> Måndag
-                    <input type="checkbox" class="checkbox" name="days1[]" value="Tisdag"> Tisdag
-                    <input type="checkbox" class="checkbox" name="days1[]" value="Onsdag"> Onsdag
-                    <input type="checkbox" class="checkbox" name="days1[]" value="Torsdag"> Torsdag
-                    <input type="checkbox" class="checkbox" name="days1[]" value="Fredag"> Fredag
-                    <input type="checkbox" class="checkbox" name="days1[]" value="Lördag"> Lördag
-                    <input type="checkbox" class="checkbox" name="days1[]" value="Söndag"> Söndag<br>
+                    <input type="checkbox" class="custom-checkbox" name="days1[]" value="Måndag"> Måndag
+                    <input type="checkbox" class="custom-checkbox" name="days1[]" value="Tisdag"> Tisdag
+                    <input type="checkbox" class="custom-checkbox" name="days1[]" value="Onsdag"> Onsdag
+                    <input type="checkbox" class="custom-checkbox" name="days1[]" value="Torsdag"> Torsdag
+                    <input type="checkbox" class="custom-checkbox" name="days1[]" value="Fredag"> Fredag
+                    <input type="checkbox" class="custom-checkbox" name="days1[]" value="Lördag"> Lördag
+                    <input type="checkbox" class="custom-checkbox" name="days1[]" value="Söndag"> Söndag<br>
 
                     <input type="hidden" id="hiddenStartTime1" name="startTime1">
                     <input type="hidden" id="hiddenEndTime1" name="endTime1">
 
+  
+                    
+                    
                     <div class="helper-text">Tid på dygnet larmet ska skickas</div>
                     <label for="wholeDay1">Hela dagen:</label>
-                    <input type="checkbox" class="checkbox" id="wholeDay1" name="wholeDay1" value="Hela dagen" onchange="toggleTimeInputs(this, 1)"><br>
+                    <input type="checkbox" class="custom-checkbox" id="wholeDay1" name="wholeDay1" value="Hela dagen" onchange="toggleTimeInputs(this, 1)"><br>
                     <label for="startTime1">Start tid:</label>
                     <input type="time" class="time-input" id="startTime1" name="startTime1" required><br>
 
